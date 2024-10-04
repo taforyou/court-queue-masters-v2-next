@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Edit2, Save, X } from "lucide-react";
 
 const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
@@ -57,65 +58,63 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-x-auto">
         {!playerHistory || playerHistory.length === 0 ? (
           <p>No player history available.</p>
         ) : (
-          <ul>
-            {playerHistory.map((player, index) => (
-              <li key={index} className="flex justify-between items-center mb-2">
-                {editingPlayer && editingPlayer.name === player.name ? (
-                  <>
-                    <div className="flex-grow mr-2">
-                      <Input 
-                        value={editingPlayer.name}
-                        onChange={(e) => handleEditChange(e, 'name')}
-                        className="mb-1"
-                      />
-                      <Input 
-                        value={editingPlayer.rank}
-                        onChange={(e) => handleEditChange(e, 'rank')}
-                        className="mb-1"
-                      />
-                      <Input 
-                        value={editingPlayer.gamesPlayed}
-                        onChange={(e) => handleEditChange(e, 'gamesPlayed')}
-                        className="mb-1"
-                      />
-                      <Input 
-                        value={editingPlayer.featherCount}
-                        onChange={(e) => handleEditChange(e, 'featherCount')}
-                      />
-                    </div>
-                    <div>
-                      <Button onClick={saveEdit} variant="ghost" size="sm" className="mr-1">
-                        <Save className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={cancelEditing} variant="ghost" size="sm">
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span>
-                      {player.name} - Rank: {player.rank}, 
-                      Games: {player.gamesPlayed}, 
-                      Feathers: {player.featherCount.toFixed(2)}
-                    </span>
-                    <div>
-                      <Button onClick={() => startEditing(player)} variant="ghost" size="sm" className="mr-1">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => removePlayer(player.name)} variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">#</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Rank</TableHead>
+                <TableHead>Games</TableHead>
+                <TableHead>Feathers</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead className="sticky right-0 bg-white">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {playerHistory.map((player, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  {editingPlayer && editingPlayer.name === player.name ? (
+                    <>
+                      <TableCell><Input value={editingPlayer.name} onChange={(e) => handleEditChange(e, 'name')} /></TableCell>
+                      <TableCell><Input value={editingPlayer.rank} onChange={(e) => handleEditChange(e, 'rank')} /></TableCell>
+                      <TableCell><Input value={editingPlayer.gamesPlayed} onChange={(e) => handleEditChange(e, 'gamesPlayed')} /></TableCell>
+                      <TableCell><Input value={editingPlayer.featherCount} onChange={(e) => handleEditChange(e, 'featherCount')} /></TableCell>
+                      <TableCell><Input value={editingPlayer.price || ''} onChange={(e) => handleEditChange(e, 'price')} /></TableCell>
+                      <TableCell className="sticky right-0 bg-white">
+                        <Button onClick={saveEdit} variant="ghost" size="sm" className="mr-1">
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={cancelEditing} variant="ghost" size="sm">
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{player.name}</TableCell>
+                      <TableCell>{player.rank}</TableCell>
+                      <TableCell>{player.gamesPlayed}</TableCell>
+                      <TableCell>{player.featherCount.toFixed(2)}</TableCell>
+                      <TableCell>{player.price || '-'}</TableCell>
+                      <TableCell className="sticky right-0 bg-white">
+                        <Button onClick={() => startEditing(player)} variant="ghost" size="sm" className="mr-1">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={() => removePlayer(player.name)} variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
