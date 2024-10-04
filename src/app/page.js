@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
 import { Trash2, Feather, PlusCircle, Plus, Minus, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
-
+import PlayerHistory from '../components/PlayerHistory';
 
 
 const Home = () => {
@@ -33,9 +33,10 @@ const Home = () => {
   const [queue, setQueue] = useState([]);
   const [playerRanks, setPlayerRanks] = useState({});
   const [selectedRank, setSelectedRank] = useState('BG');
-  const [playerStats, setPlayerStats] = useState({});
-  const [shuttlecockCount, setShuttlecockCount] = useState({});
   const [playerName, setPlayerName] = useState('');
+  const [playerStats, setPlayerStats] = useState({});
+  const [playerHistory, setPlayerHistory] = useState([]);
+  const [shuttlecockCount, setShuttlecockCount] = useState({});
   const [playerTimestamps, setPlayerTimestamps] = useState({});
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [editingCourtId, setEditingCourtId] = useState(null);
@@ -54,14 +55,6 @@ const Home = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const slideCourts = (direction) => {
-    if (direction === 'left') {
-      setCurrentCourtIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-    } else {
-      setCurrentCourtIndex((prevIndex) => Math.min(prevIndex + 1, courts.length - 1));
-    }
-  };
-
   useEffect(() => {
     if (courtsContainerRef.current) {
       courtsContainerRef.current.scrollTo({
@@ -70,6 +63,32 @@ const Home = () => {
       });
     }
   }, [currentCourtIndex]);
+
+  const updatePlayerHistory = useCallback((player, featherCount, rank, gamesPlayed) => {
+    setPlayerHistory(prevHistory => {
+      const existingPlayerIndex = prevHistory.findIndex(p => p.name === player);
+      if (existingPlayerIndex !== -1) {
+        const updatedHistory = [...prevHistory];
+        const existingPlayer = updatedHistory[existingPlayerIndex];
+        
+        const featherCountDiff = featherCount - (existingPlayer.featherCount || 0);
+        const gamesPlayedDiff = gamesPlayed - (existingPlayer.gamesPlayed || 0);
+        
+        updatedHistory[existingPlayerIndex] = {
+          ...existingPlayer,
+          featherCount: (existingPlayer.featherCount || 0) + featherCountDiff,
+          gamesPlayed: (existingPlayer.gamesPlayed || 0) + gamesPlayedDiff,
+          rank: rank
+        };
+        localStorage.setItem('playerHistory', JSON.stringify(updatedHistory));
+        return updatedHistory;
+      } else {
+        const newHistory = [...prevHistory, { name: player, featherCount, rank, gamesPlayed }];
+        localStorage.setItem('playerHistory', JSON.stringify(newHistory));
+        return newHistory;
+      }
+    });
+  }, []);
 
   const addCourt = () => {
     const newId = courts.length > 0 ? Math.max(...courts.map(court => court.id)) + 1 : 1;
@@ -210,6 +229,13 @@ const Home = () => {
             });
             remainingPlayers.forEach(player => {
               newStats[player].current = 1;
+            });
+            // Update player history here
+            removedPlayers.forEach(player => {
+              const playerStat = newStats[player];
+              const featherCount = shuttlecockCount[player] || 0;
+              const rank = playerRanks[player];
+              updatePlayerHistory(player, featherCount, rank, playerStat.completed);
             });
             return newStats;
           });
@@ -573,6 +599,12 @@ const Home = () => {
             ))}
           </ul>
         </CardContent>
+      </Card>
+      <Card className="mt-6 sm:mt-8">
+        <PlayerHistory 
+          playerHistory={playerHistory}
+          updatePlayerHistory={setPlayerHistory}
+        />
       </Card>
     </div>
   );  
