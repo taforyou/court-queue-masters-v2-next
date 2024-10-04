@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
 import { Trash2, Feather, PlusCircle, Plus, Minus, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
+import Buffer from '../components/Buffer';
 
 
 const Home = () => {
@@ -35,6 +36,20 @@ const Home = () => {
   const [selectedRank, setSelectedRank] = useState('BG');
   const [playerName, setPlayerName] = useState('');
   const [playerStats, setPlayerStats] = useState({});
+  const [initialBufferGroups, setInitialBufferGroups] = useState([
+    [
+      { id: 1, name: "Chanon Yaklai", rank: 'BG' },
+      { id: 2, name: "Jane Smith", rank: 'BG' },
+      { id: 3, name: "Mike Johnson", rank: 'BG' },
+      { id: 4, name: "Sarah Williams", rank: 'BG' },
+    ],
+    [
+      { id: 5, name: "Alice Brown", rank: 'BG' },
+      { id: 6, name: "Bob Green", rank: 'BG' },
+      { id: 7, name: "Charlie White", rank: 'BG' },
+      { id: 8, name: "Sommai Jaidee", rank: 'BG' },
+    ]
+  ]);
   const [playerHistory, setPlayerHistory] = useState([]);
   const [shuttlecockCount, setShuttlecockCount] = useState({});
   const [playerTimestamps, setPlayerTimestamps] = useState({});
@@ -281,6 +296,9 @@ const Home = () => {
     });
   };
 
+  const onAssignToBuffer = (group) => {
+    console.log("Assigning group to buffer:", group);
+  }
   const addPlayersToCourt = (courtId) => {
     const court = courts.find(c => c.id === courtId);
     const availableSlots = 4 - court.players.length;
@@ -291,7 +309,6 @@ const Home = () => {
     } else {
       playersToAdd = selectedPlayers.slice(0, availableSlots);
     }
-
     if (playersToAdd.length > 0) {
       setCourts(prevCourts => prevCourts.map(c => {
         if (c.id === courtId) {
@@ -563,6 +580,13 @@ const Home = () => {
         )}
       </div>
   
+      <Buffer 
+        selectedPlayers={selectedPlayers}
+        playerRanks={playerRanks}
+        initialBufferGroups={initialBufferGroups} 
+        onAssignToBuffer={onAssignToBuffer}
+      />
+
       <Card className="mt-6 sm:mt-8">
         <CardHeader>
           <CardTitle>Queue</CardTitle>
