@@ -497,37 +497,46 @@ const Home = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <h3 className="font-semibold">Current Players:</h3>
-                    <ul>
-                      {court.players.map((player, index) => (
-                        <li key={index} className="flex items-center justify-between space-x-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`player-${court.id}-${index}`}
-                              checked={court.checkedPlayers[index] || false}
-                              onCheckedChange={() => handleCheckboxChange(court.id, index)}
-                            />
-                            <label htmlFor={`player-${court.id}-${index}`}>{player}</label>
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[player])}`}>
-                              {playerRanks[player]}
-                            </span>
+                    <h3 className="font-semibold mb-2">Current Players:</h3>
+                    <div className="space-y-2">
+                      {court.players.reduce((acc, player, idx) => {
+                        if (idx % 2 === 0) {
+                          acc.push(
+                            <div key={idx} className="bg-gray-100 rounded-md p-2">
+                              {[player, court.players[idx + 1]].map((p, i) => p && (
+                                <div key={`${court.id}-${idx + i}`} className="flex justify-between items-center mb-2 last:mb-0">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`player-${court.id}-${idx + i}`}
+                                      checked={court.checkedPlayers[idx + i] || false}
+                                      onCheckedChange={() => handleCheckboxChange(court.id, idx + i)}
+                                    />
+                                    <label htmlFor={`player-${court.id}-${idx + i}`}>{p}</label>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[p])}`}>
+                                      {playerRanks[p]}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex flex-col items-center">
+                                      <Feather className="h-4 w-4 text-gray-500" />
+                                      <span className="text-xs text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                                      playerStats[p]?.current === 2
+                                        ? 'bg-yellow-500 text-white'
+                                        : 'bg-blue-500 text-white'
+                                    }`}>
+                                      {(playerStats[p]?.completed || 0) + (playerStats[p]?.current || 0)}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex flex-col items-center">
-                              <Feather className="h-4 w-4 text-gray-500" />
-                              <span className="text-xs text-gray-500">{shuttlecockCount[player]?.toFixed(2) || '0.00'}</span>
-                            </div>
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                              playerStats[player]?.current === 2
-                                ? 'bg-yellow-500 text-white'
-                                : 'bg-blue-500 text-white'
-                            }`}>
-                              {(playerStats[player]?.completed || 0) + (playerStats[player]?.current || 0)}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                          );
+                        }
+                        return acc;
+                      }, [])}
+                    </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
