@@ -167,6 +167,19 @@ const Home = () => {
 
   const addPlayerToQueue = () => {
     if (playerName.trim().length >= 2) {
+      // Check if the player name already exists in the queue or on any court
+      const playerExists = queue.includes(playerName) || 
+                           courts.some(court => court.players.includes(playerName));
+  
+      if (playerExists) {
+        toast({
+          title: "Duplicate Name",
+          description: "This player name already exists. Please use a unique name.",
+          variant: "destructive",
+        });
+        return; // Exit the function early
+      }
+  
       const timestamp = Date.now();
       setPlayerTimestamps(prev => {
         const updatedTimestamps = {...prev, [playerName]: timestamp};
@@ -192,8 +205,7 @@ const Home = () => {
         variant: "destructive",
       });
     }
-  };  
-
+  };
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       addPlayerToQueue();
