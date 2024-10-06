@@ -340,9 +340,20 @@ const Home = () => {
     });
   };
 
-  const assignPlayersToCourt = (courtId, playersToAssign = []) => {
+  const assignPlayersToCourt = (playersToAssign, courtId) => {
     // Determine which players we're trying to assign
     const court = courts.find(c => c.id.toString() === courtId.toString());
+    
+    // Check if court exists and initialize players array if it doesn't exist
+    if (!court) {
+      console.error(`Court with id ${courtId} not found`);
+      return;
+    }
+    
+    if (!court.players) {
+      court.players = [];
+    }
+    
     const availableSlots = 4 - court.players.length;
     const playersToCheck = playersToAssign.length > 0
       ? playersToAssign.slice(0, availableSlots)
@@ -430,7 +441,7 @@ const Home = () => {
 
     const playersToAssign = [...selectedAvailablePlayers, ...queuePlayers];
 
-    assignPlayersToCourt(courtId, playersToAssign);
+    assignPlayersToCourt(playersToAssign, courtId);
   };
 
   const handlePlayerSelection = (player) => {
