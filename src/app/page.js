@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
+import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus, ArrowUpDown } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,6 +58,8 @@ const Home = () => {
   const [currentCourtIndex, setCurrentCourtIndex] = useState(0);
   const courtsContainerRef = useRef(null);
   const [isClient, setIsClient] = useState(false);
+  const [queueSortField, setQueueSortField] = useState(null);
+  const [queueSortDirection, setQueueSortDirection] = useState('asc');
 
   useEffect(() => {
     setIsClient(true);
@@ -449,6 +451,29 @@ const Home = () => {
     }
   };
 
+  const sortQueue = useCallback((field) => {
+    setQueue(prevQueue => {
+      const newDirection = field === queueSortField && queueSortDirection === 'asc' ? 'desc' : 'asc';
+      setQueueSortDirection(newDirection);
+      setQueueSortField(field);
+
+      return [...prevQueue].sort((a, b) => {
+        let aValue, bValue;
+        if (field === 'games') {
+          aValue = playerStats[a]?.completed || 0;
+          bValue = playerStats[b]?.completed || 0;
+        } else if (field === 'timestamp') {
+          aValue = playerTimestamps[a] || 0;
+          bValue = playerTimestamps[b] || 0;
+        }
+
+        if (aValue < bValue) return newDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return newDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    });
+  }, [playerStats, playerTimestamps, queueSortField, queueSortDirection]);
+
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-gray-100">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Badminton Match Manager</h1>
@@ -688,10 +713,30 @@ const Home = () => {
                   <th className="pb-2 pr-4">Name</th>
                   <th className="pb-2 pr-4">Rank</th>
                   <th className="pb-2 pr-4">Shuttlecocks</th>
-                  <th className="pb-2 pr-4">Games</th>
+                  <th className="pb-2 pr-4">
+                    Games
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => sortQueue('games')}
+                    >
+                      <ArrowUpDown className="h-4 w-4" />
+                    </Button>
+                  </th>
                   <th className="pb-2 pr-4">Current Court</th>
                   <th className="pb-2 pr-4">Current Group</th>
-                  <th className="pb-2 pr-4">Timestamp</th>
+                  <th className="pb-2 pr-4">
+                    Timestamp
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => sortQueue('timestamp')}
+                    >
+                      <ArrowUpDown className="h-4 w-4" />
+                    </Button>
+                  </th>
                   <th className="pb-2">Actions</th>
                 </tr>
               </thead>
