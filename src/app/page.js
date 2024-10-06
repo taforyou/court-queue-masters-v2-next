@@ -36,20 +36,6 @@ const Home = () => {
   const [selectedRank, setSelectedRank] = useState('BG');
   const [playerName, setPlayerName] = useState('');
   const [playerStats, setPlayerStats] = useState({});
-  const [initialBufferGroups, setInitialBufferGroups] = useState([
-    [
-      { id: 1, name: "Chanon Yaklai", rank: 'BG' },
-      { id: 2, name: "Jane Smith", rank: 'BG' },
-      { id: 3, name: "Mike Johnson", rank: 'BG' },
-      { id: 4, name: "Sarah Williams", rank: 'BG' },
-    ],
-    [
-      { id: 5, name: "Alice Brown", rank: 'BG' },
-      { id: 6, name: "Bob Green", rank: 'BG' },
-      { id: 7, name: "Charlie White", rank: 'BG' },
-      { id: 8, name: "Sommai Jaidee", rank: 'BG' },
-    ]
-  ]);
   const [playerHistory, setPlayerHistory] = useState([]);
   const [shuttlecockCount, setShuttlecockCount] = useState({});
   const [playerTimestamps, setPlayerTimestamps] = useState({});
@@ -604,8 +590,8 @@ const Home = () => {
   
       <Buffer 
         selectedPlayers={selectedPlayers}
-        playerRanks={playerRanks}
-        initialBufferGroups={initialBufferGroups} 
+        setSelectedPlayers={setSelectedPlayers}
+        playerRanks={playerRanks} 
         onAssignToBuffer={onAssignToBuffer}
       />
 

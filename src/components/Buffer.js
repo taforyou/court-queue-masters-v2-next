@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { UserPlus, PlayCircle, Trash2  } from "lucide-react";
 
-const Buffer = ({selectedPlayers, playerRanks}) => {
+const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
   const { toast } = useToast()
   const [bufferGroups, setBufferGroups] = useState([]);
 
@@ -19,14 +19,13 @@ const Buffer = ({selectedPlayers, playerRanks}) => {
         description: "Group must contain exactly 4 selected players",
         variant: "destructive",
       });
-      // console.log("Selected players must be exactly 4");
       return;
     }
   
     const newPlayers = selectedPlayers.map((name, idx) => ({
-      id: Date.now() + idx, // Generate a unique ID
+      id: Date.now() + idx,
       name: name,
-      rank: playerRanks[name] || 'BG' // Use the rank from playerRanks, or default to 'BG' if not found
+      rank: playerRanks[name] || 'BG' 
     }));
   
     setBufferGroups(prevGroups => {
@@ -35,7 +34,7 @@ const Buffer = ({selectedPlayers, playerRanks}) => {
       return newGroups;
     });
   
-    console.log("Added players to group:", newPlayers);
+    setSelectedPlayers([])
   };
 
   const removeBufferGroup = (indexToRemove) => {
