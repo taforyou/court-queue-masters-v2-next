@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { UserPlus, PlayCircle, Trash2  } from "lucide-react";
+import { UserPlus, PlayCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
+const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBuffer, courts }) => {
   const { toast } = useToast()
   const [bufferGroups, setBufferGroups] = useState([]);
+  const [selectedCourts, setSelectedCourts] = useState({});
 
   const addGroup = () => {
-    setBufferGroups(prevGroups => [...prevGroups, []]);
+    setBufferGroups(prevGroups => {
+      const newGroups = [...prevGroups, []];
+      setSelectedCourts(prev => ({ ...prev, [newGroups.length - 1]: '' }));
+      return newGroups;
+    });
   };
 
   const addPlayerToGroup = (index) => {
@@ -35,11 +40,30 @@ const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
       return newGroups;
     });
   
-    setSelectedPlayers([])
+    setSelectedPlayers([]);
   };
 
   const removeBufferGroup = (indexToRemove) => {
     setBufferGroups(prevGroups => prevGroups.filter((_, index) => index !== indexToRemove));
+    setSelectedCourts(prev => {
+      const newSelectedCourts = { ...prev };
+      delete newSelectedCourts[indexToRemove];
+      return newSelectedCourts;
+    });
+  };
+
+  const handleAssignToBuffer = (index) => {
+    const selectedCourt = selectedCourts[index];
+    if (selectedCourt && bufferGroups[index].length === 4) {
+      onAssignToBuffer(bufferGroups[index].map(player => player.name), selectedCourt);
+      removeBufferGroup(index);
+    } else {
+      toast({
+        title: "Invalid Assignment",
+        description: "Please select a court and ensure the group has 4 players",
+        variant: "destructive",
+      });
+    }
   };
 
   const getRankColor = (rank) => {
@@ -70,7 +94,7 @@ const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
                 <CardTitle>Group {index + 1}</CardTitle>
               </CardHeader>
               <CardContent>
-                {Array.isArray(group) ? (
+                {Array.isArray(group) && group.length > 0 ? (
                   <div className="space-y-2">
                     {group.reduce((acc, player, idx) => {
                       if (idx % 2 === 0) {
@@ -96,30 +120,32 @@ const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-x-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 w-full">
                     <Button
-                      onClick={() => {
-                        addPlayerToGroup(index);
-                      }}
+                      onClick={() => addPlayerToGroup(index)}
                       className="w-full sm:w-auto mb-2 sm:mb-0"
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
                       Player from Queue
                     </Button>
-                    <Select className="w-full sm:flex-1 mt-2 sm:mt-0">
+                    <Select
+                      value={selectedCourts[index]}
+                      onValueChange={(value) => setSelectedCourts(prev => ({ ...prev, [index]: value }))}
+                      className="w-full sm:flex-1 mt-2 sm:mt-0"
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select action" />
+                        <SelectValue placeholder="Select court" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="action1">Action 1</SelectItem>
-                        <SelectItem value="action2">Action 2</SelectItem>
-                        <SelectItem value="action3">Action 3</SelectItem>
+                        {courts.map((court) => (
+                          <SelectItem key={court.id} value={court.id.toString()}>
+                            Court {court.id}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="flex space-x-2 mt-2 sm:mt-0">
                     <Button
-                      onClick={() => {
-                        addPlayerToGroup(index);
-                      }}
+                      onClick={() => handleAssignToBuffer(index)}
                       className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600"
                     >
                       <PlayCircle className="h-4 w-4" />
