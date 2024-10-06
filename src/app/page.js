@@ -660,48 +660,76 @@ const Home = () => {
           <CardTitle>Queue</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
-            {queue.map((player, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`queue-player-${index}`}
-                  checked={selectedPlayers.includes(player)}
-                  onCheckedChange={() => handlePlayerSelection(player)}
-                />
-                <label htmlFor={`queue-player-${index}`} className="flex-grow flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span>{player}</span>
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[player])}`}>
-                      {playerRanks[player]}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex flex-col items-center">
-                      <Feather className="h-4 w-4 text-gray-500" />
-                      <span className="text-xs text-gray-500">{shuttlecockCount[player]?.toFixed(2) || '0.00'}</span>
-                    </div>
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                      playerStats[player]?.current > 0
-                        ? 'bg-blue-500 text-white'
-                        : playerStats[player]?.completed > 0
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-300 text-gray-600'
-                    }`}>
-                      {playerStats[player]?.completed || 0}
-                    </span>
-                  </div>
-                </label>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removePlayerFromQueue(player)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-left text-sm font-medium text-gray-500 border-b">
+                  <th className="pb-2 pr-4">Select</th>
+                  <th className="pb-2 pr-4">Name</th>
+                  <th className="pb-2 pr-4">Rank</th>
+                  <th className="pb-2 pr-4">Shuttlecocks</th>
+                  <th className="pb-2 pr-4">Games</th>
+                  <th className="pb-2 pr-4">Current Court</th>
+                  <th className="pb-2 pr-4">Current Group</th>
+                  <th className="pb-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {queue.map((player, index) => (
+                  <tr key={index} className="border-b last:border-b-0">
+                    <td className="py-2 pr-4">
+                      <Checkbox
+                        id={`queue-player-${index}`}
+                        checked={selectedPlayers.includes(player)}
+                        onCheckedChange={() => handlePlayerSelection(player)}
+                      />
+                    </td>
+                    <td className="py-2 pr-4">{player}</td>
+                    <td className="py-2 pr-4">
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[player])}`}>
+                        {playerRanks[player]}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <div className="flex items-center space-x-1">
+                        <Feather className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-gray-500">{shuttlecockCount[player]?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                        playerStats[player]?.current > 0
+                          ? 'bg-blue-500 text-white'
+                          : playerStats[player]?.completed > 0
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                      }`}>
+                        {playerStats[player]?.completed || 0}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4">
+                      {/* Add logic for Current Court here */}
+                      -
+                    </td>
+                    <td className="py-2 pr-4">
+                      {/* Add logic for Current Group here */}
+                      -
+                    </td>
+                    <td className="py-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removePlayerFromQueue(player)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
       <Card className="mt-6 sm:mt-8">
