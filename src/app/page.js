@@ -592,8 +592,8 @@ const Home = () => {
                                     </div>
                                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
                                       playerStats[p]?.current === 2
-                                        ? 'bg-yellow-500 text-white'
-                                        : 'bg-blue-500 text-white'
+                                        ? 'bg-yellow-400 text-white'  
+                                        : 'bg-yellow-500 text-white'
                                     }`}>
                                       {(playerStats[p]?.completed || 0) + (playerStats[p]?.current || 0)}
                                     </span>
