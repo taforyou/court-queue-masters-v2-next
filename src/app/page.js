@@ -11,6 +11,18 @@ import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).replace(',', '').replace(/,([^\s])/, ', $1');
+};
 
 const Home = () => {
   const { toast } = useToast()
@@ -679,6 +691,7 @@ const Home = () => {
                   <th className="pb-2 pr-4">Games</th>
                   <th className="pb-2 pr-4">Current Court</th>
                   <th className="pb-2 pr-4">Current Group</th>
+                  <th className="pb-2 pr-4">Timestamp</th>
                   <th className="pb-2">Actions</th>
                 </tr>
               </thead>
@@ -721,6 +734,9 @@ const Home = () => {
                     <td className="py-2 pr-4">
                       {/* Add logic for Current Group here */}
                       -
+                    </td>
+                    <td className="py-2 pr-4">
+                      {playerTimestamps[player] ? formatTimestamp(playerTimestamps[player]) : '-'}
                     </td>
                     <td className="py-2">
                       <Button
