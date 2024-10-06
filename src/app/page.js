@@ -348,6 +348,16 @@ const Home = () => {
       ? playersToAssign.slice(0, availableSlots)
       : queue.filter(player => !playerStats[player]?.current).slice(0, availableSlots);
 
+    // Check if there are no available players
+    if (playersToCheck.length === 0) {
+      toast({
+        title: "No Available Players",
+        description: "There are no available players in the queue to assign to the court.",
+        variant: "destructive",
+      });
+      return; // Exit the function early
+    }
+
     // Check if any of the players are already on a court
     const playersOnCourts = playersToCheck.filter(player => 
       playerStats[player]?.current > 0 && playerStats[player]?.currentCourt !== courtId
