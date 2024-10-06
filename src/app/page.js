@@ -406,12 +406,27 @@ const Home = () => {
   const saveCourtId = () => {
     const newId = parseInt(editCourtIdValue);
     if (!isNaN(newId) && newId > 0) {
-      setCourts(prevCourts => prevCourts.map(court => 
-        court.id === editingCourtId ? { ...court, id: newId } : court
-      ));
-      setEditingCourtId(null);
+      // Check if the new ID already exists in other courts
+      const idExists = courts.some(court => court.id === newId && court.id !== editingCourtId);
+      
+      if (idExists) {
+        toast({
+          title: "Duplicate Court ID",
+          description: "Court ID already exists. Please choose a different ID.",
+          variant: "destructive",
+        });
+      } else {
+        setCourts(prevCourts => prevCourts.map(court => 
+          court.id === editingCourtId ? { ...court, id: newId } : court
+        ));
+        setEditingCourtId(null);
+      }
     } else {
-      console.log("Invalid court ID");
+      toast({
+        title: "Invalid court ID",
+        description: "Please enter a positive court ID number.",
+        variant: "destructive",
+      });
     }
   };
 
