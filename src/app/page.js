@@ -280,36 +280,43 @@ const Home = () => {
 
           setPlayerStats(prev => {
             const newStats = {...prev};
+            const currentTime = Date.now();
+
+            // Handle removed players
             removedPlayers.forEach(player => {
               newStats[player] = {
                 completed: (newStats[player]?.completed || 0) + 1,
                 current: 0,
-                currentCourt: null // Reset currentCourt when removing from court
+                currentCourt: null
               };
+              const featherCount = shuttlecockCount[player] || 0;
+              const rank = playerRanks[player];
+              updatePlayerHistory(player, featherCount, rank, newStats[player].completed);
             });
+
+            // Handle remaining players
             remainingPlayers.forEach(player => {
               newStats[player] = {
                 ...newStats[player],
+                completed: (newStats[player]?.completed || 0) + 1,
                 current: (newStats[player]?.current || 0) + 1,
-                currentCourt: courtId // Ensure currentCourt is set for remaining players
+                currentCourt: courtId
               };
-            });
-            // Update player history here
-            removedPlayers.forEach(player => {
-              const playerStat = newStats[player];
               const featherCount = shuttlecockCount[player] || 0;
               const rank = playerRanks[player];
-              updatePlayerHistory(player, featherCount, rank, playerStat.completed);
+              updatePlayerHistory(player, featherCount, rank, newStats[player].completed);
             });
-            return newStats;
-          });
 
-          setPlayerTimestamps(prev => {
-            const newTimestamps = {...prev};
-            removedPlayers.forEach((player, index) => {
-              newTimestamps[player] = currentTime + index;
+            // Update timestamps
+            setPlayerTimestamps(prevTimestamps => {
+              const newTimestamps = {...prevTimestamps};
+              removedPlayers.forEach((player, index) => {
+                newTimestamps[player] = currentTime + index;
+              });
+              return newTimestamps;
             });
-            return newTimestamps;
+
+            return newStats;
           });
 
           setQueue(prevQueue => {
@@ -707,7 +714,8 @@ const Home = () => {
                                         ? 'bg-yellow-400 text-white'  
                                         : 'bg-yellow-500 text-white'
                                     }`}>
-                                      {(playerStats[p]?.completed || 0) + (playerStats[p]?.current || 0)}
+                                      {/* {(playerStats[p]?.completed || 0) + (playerStats[p]?.current || 0)} */}
+                                      {(playerStats[p]?.current || 0)}
                                     </span>
                                   </div>
                                 </div>
