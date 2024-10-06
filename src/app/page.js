@@ -172,39 +172,20 @@ const Home = () => {
     return Object.values(court.checkedPlayers).filter(Boolean).length;
   };
 
-  const sortQueue = (updatedQueue, currentPlayerStats, currentPlayerTimestamps) => {
-    return updatedQueue.sort((a, b) => {
-      const statsA = currentPlayerStats[a]?.completed || 0;
-      const statsB = currentPlayerStats[b]?.completed || 0;
-      if (statsA === 0 && statsB === 0) {
-        return currentPlayerTimestamps[a] - currentPlayerTimestamps[b];
+  const updateQueueAndSort = (queue, playerStats, playerTimestamps) => {
+    return queue.sort((a, b) => {
+      // First, sort by the number of games played (ascending order)
+      if (playerStats[a].games !== playerStats[b].games) {
+        return playerStats[a].games - playerStats[b].games;
       }
-      if (statsA === 0) return -1;
-      if (statsB === 0) return 1;
-      if (statsA !== statsB) {
-        return statsA - statsB;
-      }
-      return currentPlayerTimestamps[a] - currentPlayerTimestamps[b];
-    });
-  };
+      
+      // If games are equal, prioritize players not currently on a court
+      if (playerStats[a].current === 0 && playerStats[b].current > 0) return -1;
+      if (playerStats[a].current > 0 && playerStats[b].current === 0) return 1;
 
-  const updateQueueAndSort = (updatedQueue, currentPlayerStats, currentPlayerTimestamps) => {
-    return updatedQueue.sort((a, b) => {
-      const statsA = currentPlayerStats[a];
-      const statsB = currentPlayerStats[b];
-      
-      // Prioritize players not currently on a court
-      if (statsA.current !== statsB.current) {
-        return statsA.current - statsB.current;
-      }
-      
-      // Then sort by completed games
-      if (statsA.completed !== statsB.completed) {
-        return statsA.completed - statsB.completed;
-      }
-      
-      // Finally, sort by timestamp (waiting time)
-      return currentPlayerTimestamps[a] - currentPlayerTimestamps[b];
+      // If both players have the same number of games and court status, 
+      // sort by timestamp (earlier timestamp first)
+      return playerTimestamps[a] - playerTimestamps[b];
     });
   };
 
@@ -279,7 +260,8 @@ const Home = () => {
             court.players.forEach(player => {
               newStats[player] = {
                 completed: (newStats[player]?.completed || 0) + 1,
-                current: 0
+                 current: 0,
+                currentCourt: null // Reset currentCourt when removing from court
               };
             });
             remainingPlayers.forEach(player => {
@@ -325,12 +307,30 @@ const Home = () => {
   };
 
   const assignPlayersToCourt = (courtId, playersToAssign = []) => {
+    // Determine which players we're trying to assign
+    const playersToCheck = playersToAssign.length > 0
+      ? playersToAssign
+      : queue.slice(0, 4 - courts.find(c => c.id.toString() === courtId.toString()).players.length);
+
+    // Check if any of the players are already on a court
+    const playersOnCourts = playersToCheck.filter(player => 
+      playerStats[player]?.current > 0 && playerStats[player]?.currentCourt !== courtId
+    );
+
+    if (playersOnCourts.length > 0) {
+      toast({
+        title: "Players Already Assigned",
+        description: `${playersOnCourts.join(', ')} ${playersOnCourts.length > 1 ? 'are' : 'is'} already on another court. Cannot assign to Court ${courtId}.`,
+        variant: "destructive",
+      });
+      return; // Exit the function early
+    }
+
+    // If we've reached here, it's safe to assign the players
     setCourts(prevCourts => prevCourts.map(court => {
       if (court.id.toString() === courtId.toString()) {
         const availableSlots = 4 - court.players.length;
-        const playersToAdd = playersToAssign.length > 0
-          ? playersToAssign.slice(0, availableSlots)
-          : queue.slice(0, availableSlots);
+        const playersToAdd = playersToCheck.slice(0, availableSlots);
         return { ...court, players: [...court.players, ...playersToAdd] };
       }
       return court;
@@ -339,18 +339,15 @@ const Home = () => {
     // Update player stats and re-sort the queue
     setPlayerStats(prevStats => {
       const newStats = {...prevStats};
-      const playersAdded = playersToAssign.length > 0
-        ? playersToAssign
-        : queue.slice(0, 4 - courts.find(c => c.id.toString() === courtId.toString()).players.length);
-
-      playersAdded.forEach(player => {
+      playersToCheck.forEach(player => {
         newStats[player] = {
           ...newStats[player],
-          current: 1
+          current: 1,
+          currentCourt: courtId
         };
       });
 
-      // Re-sort the queue without removing players
+      // Re-sort the queue with the updated stats
       setQueue(prevQueue => {
         const updatedQueue = [...prevQueue];
         setPlayerTimestamps(latestPlayerTimestamps => {
@@ -719,8 +716,7 @@ const Home = () => {
                       </span>
                     </td>
                     <td className="py-2 pr-4">
-                      {/* Add logic for Current Court here */}
-                      -
+                      {playerStats[player]?.currentCourt ? playerStats[player].currentCourt : '-'}
                     </td>
                     <td className="py-2 pr-4">
                       {/* Add logic for Current Group here */}
