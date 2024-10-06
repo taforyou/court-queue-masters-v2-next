@@ -58,6 +58,11 @@ const Home = () => {
   const [editCourtIdValue, setEditCourtIdValue] = useState('');
   const [currentCourtIndex, setCurrentCourtIndex] = useState(0);
   const courtsContainerRef = useRef(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -416,7 +421,15 @@ const Home = () => {
               <option key={rank} value={rank}>{rank}</option>
             ))}
           </select>
-          <Button onClick={addPlayerToQueue} disabled={playerName.trim().length < 2} className="w-full sm:w-auto">Join Queue</Button>
+          {isClient && (
+            <Button 
+              onClick={addPlayerToQueue} 
+              disabled={playerName.trim().length < 2} 
+              className="w-full sm:w-auto"
+            >
+              Join Queue
+            </Button>
+          )}
         </div>
       </div>
   
