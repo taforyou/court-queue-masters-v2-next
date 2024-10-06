@@ -331,9 +331,11 @@ const Home = () => {
 
   const assignPlayersToCourt = (courtId, playersToAssign = []) => {
     // Determine which players we're trying to assign
+    const court = courts.find(c => c.id.toString() === courtId.toString());
+    const availableSlots = 4 - court.players.length;
     const playersToCheck = playersToAssign.length > 0
-      ? playersToAssign
-      : queue.slice(0, 4 - courts.find(c => c.id.toString() === courtId.toString()).players.length);
+      ? playersToAssign.slice(0, availableSlots)
+      : queue.filter(player => !playerStats[player]?.current).slice(0, availableSlots);
 
     // Check if any of the players are already on a court
     const playersOnCourts = playersToCheck.filter(player => 
@@ -352,14 +354,12 @@ const Home = () => {
     // If we've reached here, it's safe to assign the players
     setCourts(prevCourts => prevCourts.map(court => {
       if (court.id.toString() === courtId.toString()) {
-        const availableSlots = 4 - court.players.length;
-        const playersToAdd = playersToCheck.slice(0, availableSlots);
-        return { ...court, players: [...court.players, ...playersToAdd] };
+        return { ...court, players: [...court.players, ...playersToCheck] };
       }
       return court;
     }));
 
-    // Update player stats and re-sort the queue
+    // Update player stats
     setPlayerStats(prevStats => {
       const newStats = {...prevStats};
       playersToCheck.forEach(player => {
@@ -369,31 +369,47 @@ const Home = () => {
           currentCourt: courtId
         };
       });
-
-      // Re-sort the queue with the updated stats
-      setQueue(prevQueue => {
-        const updatedQueue = [...prevQueue];
-        setPlayerTimestamps(latestPlayerTimestamps => {
-          updateQueueAndSort(updatedQueue, newStats, latestPlayerTimestamps);
-          return latestPlayerTimestamps;
-        });
-        return updatedQueue;
-      });
-
       return newStats;
+    });
+
+    // Update timestamps for assigned players
+    const currentTime = Date.now();
+    setPlayerTimestamps(prevTimestamps => {
+      const newTimestamps = {...prevTimestamps};
+      playersToCheck.forEach((player, index) => {
+        newTimestamps[player] = currentTime + index;
+      });
+      return newTimestamps;
+    });
+
+    // Keep the assigned players in the queue, but move them to the end
+    setQueue(prevQueue => {
+      const remainingPlayers = prevQueue.filter(player => !playersToCheck.includes(player));
+      return [...remainingPlayers, ...playersToCheck];
     });
 
     setSelectedPlayers([]);
   };
 
-  // Replace addPlayersToCourt with:
+  // Update the addPlayersToCourt function to prioritize selected players
   const addPlayersToCourt = (courtId) => {
-    assignPlayersToCourt(courtId);
-  };
+    const court = courts.find(c => c.id.toString() === courtId.toString());
+    const availableSlots = 4 - court.players.length;
 
-  // Replace onAssignToCourt with:
-  const onAssignToCourt = (players, courtId) => {
-    assignPlayersToCourt(courtId, players);
+    // First, prioritize selected players who are not currently on a court
+    const selectedAvailablePlayers = selectedPlayers
+      .filter(player => !playerStats[player]?.current)
+      .slice(0, availableSlots);
+
+    // If there are still slots available, fill them with players from the queue
+    const remainingSlots = availableSlots - selectedAvailablePlayers.length;
+    const queuePlayers = queue
+      .filter(player => !selectedPlayers.includes(player) && !playerStats[player]?.current)
+      .slice(0, remainingSlots);
+
+    const playersToAssign = [...selectedAvailablePlayers, ...queuePlayers];
+
+    assignPlayersToCourt(courtId, playersToAssign);
   };
 
   const handlePlayerSelection = (player) => {
@@ -725,7 +741,7 @@ const Home = () => {
         selectedPlayers={selectedPlayers}
         setSelectedPlayers={setSelectedPlayers}
         playerRanks={playerRanks} 
-        onAssignToCourt={onAssignToCourt}
+        onAssignToCourt={assignPlayersToCourt}
         courts={courts}
         onGroupChange={handleGroupChange}
       />
