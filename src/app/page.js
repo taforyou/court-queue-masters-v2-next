@@ -677,7 +677,12 @@ const Home = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <h3 className="font-semibold mb-2">Current Players:</h3>
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm text-gray-500">Current players:</h3>
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm text-gray-500">Games count:</span>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       {court.players.reduce((acc, player, idx) => {
                         if (idx % 2 === 0) {
@@ -704,17 +709,9 @@ const Home = () => {
                                       <Undo2 className="h-4 w-4 text-blue-500" />
                                     </Button>
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex flex-col items-center">
-                                      <Feather className="h-4 w-4 text-gray-500" />
-                                      <span className="text-xs text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
-                                    </div>
-                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                                      playerStats[p]?.current === 2
-                                        ? 'bg-yellow-400 text-white'  
-                                        : 'bg-yellow-500 text-white'
-                                    }`}>
-                                      {/* {(playerStats[p]?.completed || 0) + (playerStats[p]?.current || 0)} */}
+                                  <div className="flex items-center space-x-4">
+                                    <span className="text-sm text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-yellow-400 text-white`}>
                                       {(playerStats[p]?.current || 0)}
                                     </span>
                                   </div>
