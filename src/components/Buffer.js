@@ -90,8 +90,39 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBu
         <div className="mt-4 flex space-x-4 overflow-x-auto pb-4 sm:grid sm:grid-cols-3 sm:gap-4">
           {bufferGroups.map((group, index) => (
             <Card key={index} className="mb-4 flex-shrink-0 w-64 sm:w-auto">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Group {index + 1}</CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Select
+                    value={selectedCourts[index]}
+                    onValueChange={(value) => setSelectedCourts(prev => ({ ...prev, [index]: value }))}
+                    className="w-32"
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select court" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courts.map((court) => (
+                        <SelectItem key={court.id} value={court.id.toString()}>
+                          Court {court.id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => handleAssignToBuffer(index)}
+                    className="bg-green-500 hover:bg-green-600 rounded-full p-2 w-8 h-8 flex items-center justify-center"
+                  >
+                    <PlayCircle className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={() => removeBufferGroup(index)} 
+                    variant="destructive" 
+                    className="rounded-full p-2 w-8 h-8 flex items-center justify-center"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {Array.isArray(group) && group.length > 0 ? (
@@ -125,33 +156,6 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBu
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
                       Player from Queue
-                    </Button>
-                    <Select
-                      value={selectedCourts[index]}
-                      onValueChange={(value) => setSelectedCourts(prev => ({ ...prev, [index]: value }))}
-                      className="w-full sm:flex-1 mt-2 sm:mt-0"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select court" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courts.map((court) => (
-                          <SelectItem key={court.id} value={court.id.toString()}>
-                            Court {court.id}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex space-x-2 mt-2 sm:mt-0">
-                    <Button
-                      onClick={() => handleAssignToBuffer(index)}
-                      className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600"
-                    >
-                      <PlayCircle className="h-4 w-4" />
-                    </Button>
-                    <Button onClick={() => removeBufferGroup(index)} variant="destructive" className="flex-1 sm:flex-none">
-                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
