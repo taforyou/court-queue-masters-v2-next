@@ -55,8 +55,17 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
   const handleAssignToCourt = (index) => {
     const selectedCourt = selectedCourts[index];
     if (selectedCourt && bufferGroups[index].length === 4) {
-      onAssignToCourt(bufferGroups[index].map(player => player.name), selectedCourt);
-      removeBufferGroup(index);
+      const courtToAssign = courts.find(court => court.id.toString() === selectedCourt);
+      if (courtToAssign && courtToAssign.players && courtToAssign.players.length > 0) {
+        toast({
+          title: "Court Occupied",
+          description: "Cannot assign to a court that already has players. Please select an empty court.",
+          variant: "destructive",
+        });
+      } else {
+        onAssignToCourt(bufferGroups[index].map(player => player.name), selectedCourt);
+        removeBufferGroup(index);
+      }
     } else {
       toast({
         title: "Invalid Assignment",
