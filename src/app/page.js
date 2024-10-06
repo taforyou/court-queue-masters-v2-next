@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Trash2, Feather, PlusCircle, Plus, Minus, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 const Home = () => {
@@ -389,7 +390,7 @@ const Home = () => {
   
       <div className="mb-6 sm:mb-8">
         <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Join Queue</h2>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
           <Input
             type="text"
             value={playerName}
@@ -398,24 +399,27 @@ const Home = () => {
             placeholder="Enter your name (min 2 characters)"
             className="flex-grow"
           />
-          <select
-            value={selectedRank}
-            onChange={(e) => setSelectedRank(e.target.value)}
-            className="border border-gray-300 rounded-md p-2"
-          >
-            {['BG-', 'BG', 'BG+', 'N-', 'N', 'N+', 'S-', 'S', 'S+', 'P-', 'P', 'P+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'].map(rank => (
-              <option key={rank} value={rank}>{rank}</option>
-            ))}
-          </select>
-          {isClient && (
-            <Button 
-              onClick={addPlayerToQueue} 
-              disabled={playerName.trim().length < 2} 
-              className="w-full sm:w-auto"
-            >
-              Join Queue
-            </Button>
-          )}
+          <div className="flex space-x-2">
+            <Select value={selectedRank} onValueChange={setSelectedRank}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Select rank" />
+              </SelectTrigger>
+              <SelectContent>
+                {['BG-', 'BG', 'BG+', 'N-', 'N', 'N+', 'S-', 'S', 'S+', 'P-', 'P', 'P+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'].map(rank => (
+                  <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isClient && (
+              <Button 
+                onClick={addPlayerToQueue} 
+                disabled={playerName.trim().length < 2} 
+                className="w-full sm:w-auto"
+              >
+                Join Queue
+              </Button>
+            )}
+          </div>
         </div>
       </div>
   

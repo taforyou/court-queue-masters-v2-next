@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { UserPlus, PlayCircle, Trash2  } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
   const { toast } = useToast()
@@ -93,18 +94,32 @@ const Buffer = ({selectedPlayers,setSelectedPlayers,playerRanks }) => {
                   </div>
                 ) : <p>No players in this group</p>}
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-x-2">
-                  <Button onClick={() => {
-                      addPlayerToGroup(index);
-                    }} 
-                    className="w-full sm:w-auto mb-2 sm:mb-0"
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Player from Queue
-                  </Button>
-                  <div className="flex space-x-2">
-                    <Button onClick={() => {
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 w-full">
+                    <Button
+                      onClick={() => {
                         addPlayerToGroup(index);
-                      }} 
+                      }}
+                      className="w-full sm:w-auto mb-2 sm:mb-0"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Player from Queue
+                    </Button>
+                    <Select className="w-full sm:flex-1 mt-2 sm:mt-0">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="action1">Action 1</SelectItem>
+                        <SelectItem value="action2">Action 2</SelectItem>
+                        <SelectItem value="action3">Action 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex space-x-2 mt-2 sm:mt-0">
+                    <Button
+                      onClick={() => {
+                        addPlayerToGroup(index);
+                      }}
                       className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600"
                     >
                       <PlayCircle className="h-4 w-4" />
