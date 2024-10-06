@@ -324,11 +324,13 @@ const Home = () => {
     });
   };
 
-  const onAssignToCourt = (players, courtId) => {
+  const assignPlayersToCourt = (courtId, playersToAssign = []) => {
     setCourts(prevCourts => prevCourts.map(court => {
-      if (court.id.toString() === courtId) {
+      if (court.id.toString() === courtId.toString()) {
         const availableSlots = 4 - court.players.length;
-        const playersToAdd = players.slice(0, availableSlots);
+        const playersToAdd = playersToAssign.length > 0
+          ? playersToAssign.slice(0, availableSlots)
+          : queue.slice(0, availableSlots);
         return { ...court, players: [...court.players, ...playersToAdd] };
       }
       return court;
@@ -337,14 +339,18 @@ const Home = () => {
     // Update player stats and re-sort the queue
     setPlayerStats(prevStats => {
       const newStats = {...prevStats};
-      players.forEach(player => {
+      const playersAdded = playersToAssign.length > 0
+        ? playersToAssign
+        : queue.slice(0, 4 - courts.find(c => c.id.toString() === courtId.toString()).players.length);
+
+      playersAdded.forEach(player => {
         newStats[player] = {
           ...newStats[player],
           current: 1
         };
       });
 
-      // Re-sort the queue
+      // Re-sort the queue without removing players
       setQueue(prevQueue => {
         const updatedQueue = [...prevQueue];
         setPlayerTimestamps(latestPlayerTimestamps => {
@@ -360,46 +366,14 @@ const Home = () => {
     setSelectedPlayers([]);
   };
 
+  // Replace addPlayersToCourt with:
   const addPlayersToCourt = (courtId) => {
-    const court = courts.find(c => c.id === courtId);
-    const availableSlots = 4 - court.players.length;
-    let playersToAdd = selectedPlayers.length > 0 
-      ? selectedPlayers.slice(0, availableSlots)
-      : queue.slice(0, availableSlots);
+    assignPlayersToCourt(courtId);
+  };
 
-    if (playersToAdd.length > 0) {
-      setCourts(prevCourts => prevCourts.map(court => {
-        if (court.id === courtId) {
-          return { ...court, players: [...court.players, ...playersToAdd] };
-        }
-        return court;
-      }));
-
-      // Update player stats and re-sort the queue
-      setPlayerStats(prevStats => {
-        const newStats = {...prevStats};
-        playersToAdd.forEach(player => {
-          newStats[player] = {
-            ...newStats[player],
-            current: 1
-          };
-        });
-
-        // Re-sort the queue without removing players
-        setQueue(prevQueue => {
-          const updatedQueue = [...prevQueue];
-          setPlayerTimestamps(latestPlayerTimestamps => {
-            updateQueueAndSort(updatedQueue, newStats, latestPlayerTimestamps);
-            return latestPlayerTimestamps;
-          });
-          return updatedQueue;
-        });
-
-        return newStats;
-      });
-
-      setSelectedPlayers([]);
-    }
+  // Replace onAssignToCourt with:
+  const onAssignToCourt = (players, courtId) => {
+    assignPlayersToCourt(courtId, players);
   };
 
   const handlePlayerSelection = (player) => {
