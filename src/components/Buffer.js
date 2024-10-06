@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { UserPlus, PlayCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBuffer, courts }) => {
+const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCourt, courts }) => {
   const { toast } = useToast()
   const [bufferGroups, setBufferGroups] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState({});
@@ -52,10 +52,10 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBu
     });
   };
 
-  const handleAssignToBuffer = (index) => {
+  const handleAssignToCourt = (index) => {
     const selectedCourt = selectedCourts[index];
     if (selectedCourt && bufferGroups[index].length === 4) {
-      onAssignToBuffer(bufferGroups[index].map(player => player.name), selectedCourt);
+      onAssignToCourt(bufferGroups[index].map(player => player.name), selectedCourt);
       removeBufferGroup(index);
     } else {
       toast({
@@ -110,7 +110,7 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToBu
                     </SelectContent>
                   </Select>
                   <Button
-                    onClick={() => handleAssignToBuffer(index)}
+                    onClick={() => handleAssignToCourt(index)}
                     className="bg-green-500 hover:bg-green-600 rounded-full p-2 w-8 h-8 flex items-center justify-center"
                   >
                     <PlayCircle className="h-4 w-4" />

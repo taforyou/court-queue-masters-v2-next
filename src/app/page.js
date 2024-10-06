@@ -309,7 +309,7 @@ const Home = () => {
     });
   };
 
-  const onAssignToBuffer = (players, courtId) => {
+  const onAssignToCourt = (players, courtId) => {
     setCourts(prevCourts => prevCourts.map(court => {
       if (court.id.toString() === courtId) {
         const availableSlots = 4 - court.players.length;
@@ -321,7 +321,9 @@ const Home = () => {
 
     setQueue(prevQueue => prevQueue.filter(player => !players.includes(player)));
     setSelectedPlayers([]);
+    console.log("onAssignToCourt has been called");
   };
+
   const addPlayersToCourt = (courtId) => {
     const court = courts.find(c => c.id === courtId);
     const availableSlots = 4 - court.players.length;
@@ -651,8 +653,8 @@ const Home = () => {
         selectedPlayers={selectedPlayers}
         setSelectedPlayers={setSelectedPlayers}
         playerRanks={playerRanks} 
-        onAssignToBuffer={onAssignToBuffer}
-        courts={courts} // Add this line to pass courts to Buffer
+        onAssignToCourt={onAssignToCourt}
+        courts={courts}
       />
 
       <Card className="mt-6 sm:mt-8">
