@@ -189,8 +189,23 @@ const Home = () => {
   };
 
   const updateQueueAndSort = (updatedQueue, currentPlayerStats, currentPlayerTimestamps) => {
-    const sortedQueue = sortQueue(updatedQueue, currentPlayerStats, currentPlayerTimestamps);
-    setQueue(sortedQueue);
+    return updatedQueue.sort((a, b) => {
+      const statsA = currentPlayerStats[a];
+      const statsB = currentPlayerStats[b];
+      
+      // Prioritize players not currently on a court
+      if (statsA.current !== statsB.current) {
+        return statsA.current - statsB.current;
+      }
+      
+      // Then sort by completed games
+      if (statsA.completed !== statsB.completed) {
+        return statsA.completed - statsB.completed;
+      }
+      
+      // Finally, sort by timestamp (waiting time)
+      return currentPlayerTimestamps[a] - currentPlayerTimestamps[b];
+    });
   };
 
   const addPlayerToQueue = () => {
@@ -289,7 +304,7 @@ const Home = () => {
           });
 
           setQueue(prevQueue => {
-            const updatedQueue = [...prevQueue, ...removedPlayers];
+            const updatedQueue = [...new Set([...prevQueue, ...removedPlayers])];
             setPlayerStats(latestPlayerStats => {
               setPlayerTimestamps(latestPlayerTimestamps => {
                 updateQueueAndSort(updatedQueue, latestPlayerStats, latestPlayerTimestamps);
@@ -319,29 +334,48 @@ const Home = () => {
       return court;
     }));
 
-    setQueue(prevQueue => prevQueue.filter(player => !players.includes(player)));
+    // Update player stats and re-sort the queue
+    setPlayerStats(prevStats => {
+      const newStats = {...prevStats};
+      players.forEach(player => {
+        newStats[player] = {
+          ...newStats[player],
+          current: 1
+        };
+      });
+
+      // Re-sort the queue
+      setQueue(prevQueue => {
+        const updatedQueue = [...prevQueue];
+        setPlayerTimestamps(latestPlayerTimestamps => {
+          updateQueueAndSort(updatedQueue, newStats, latestPlayerTimestamps);
+          return latestPlayerTimestamps;
+        });
+        return updatedQueue;
+      });
+
+      return newStats;
+    });
+
     setSelectedPlayers([]);
-    console.log("onAssignToCourt has been called");
   };
 
   const addPlayersToCourt = (courtId) => {
     const court = courts.find(c => c.id === courtId);
     const availableSlots = 4 - court.players.length;
-    let playersToAdd = [];
+    let playersToAdd = selectedPlayers.length > 0 
+      ? selectedPlayers.slice(0, availableSlots)
+      : queue.slice(0, availableSlots);
 
-    if (selectedPlayers.length === 0) {
-      playersToAdd = queue.slice(0, availableSlots);
-    } else {
-      playersToAdd = selectedPlayers.slice(0, availableSlots);
-    }
     if (playersToAdd.length > 0) {
-      setCourts(prevCourts => prevCourts.map(c => {
-        if (c.id === courtId) {
-          return { ...c, players: [...c.players, ...playersToAdd] };
+      setCourts(prevCourts => prevCourts.map(court => {
+        if (court.id === courtId) {
+          return { ...court, players: [...court.players, ...playersToAdd] };
         }
-        return c;
+        return court;
       }));
 
+      // Update player stats and re-sort the queue
       setPlayerStats(prevStats => {
         const newStats = {...prevStats};
         playersToAdd.forEach(player => {
@@ -350,20 +384,20 @@ const Home = () => {
             current: 1
           };
         });
+
+        // Re-sort the queue without removing players
+        setQueue(prevQueue => {
+          const updatedQueue = [...prevQueue];
+          setPlayerTimestamps(latestPlayerTimestamps => {
+            updateQueueAndSort(updatedQueue, newStats, latestPlayerTimestamps);
+            return latestPlayerTimestamps;
+          });
+          return updatedQueue;
+        });
+
         return newStats;
       });
 
-      setQueue(prevQueue => {
-        const updatedQueue = prevQueue.filter(player => !playersToAdd.includes(player));
-        setPlayerStats(latestPlayerStats => {
-          setPlayerTimestamps(latestPlayerTimestamps => {
-            updateQueueAndSort(updatedQueue, latestPlayerStats, latestPlayerTimestamps);
-            return latestPlayerTimestamps;
-          });
-          return latestPlayerStats;
-        });
-        return updatedQueue;
-      });
       setSelectedPlayers([]);
     }
   };
