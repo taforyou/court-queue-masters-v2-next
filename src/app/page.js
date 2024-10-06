@@ -119,6 +119,14 @@ const Home = () => {
   };
 
   const removeCourt = (id) => {
+    if (courts.length <= 1) {
+      toast({
+        title: "Cannot Remove Court",
+        description: "At least one court must remain.",
+        variant: "destructive",
+      });
+      return;
+    }
     setCourts(courts.filter(court => court.id !== id));
   };
 
