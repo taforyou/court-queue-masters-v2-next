@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { UserPlus, PlayCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCourt, courts }) => {
+const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCourt, courts, onGroupChange }) => {
   const { toast } = useToast()
   const [bufferGroups, setBufferGroups] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState({});
@@ -14,6 +14,7 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
     setBufferGroups(prevGroups => {
       const newGroups = [...prevGroups, []];
       setSelectedCourts(prev => ({ ...prev, [newGroups.length - 1]: '' }));
+      onGroupChange(newGroups); // Notify parent of group change
       return newGroups;
     });
   };
@@ -37,6 +38,7 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
     setBufferGroups(prevGroups => {
       const newGroups = [...prevGroups];
       newGroups[index] = newPlayers;
+      onGroupChange(newGroups); // Notify parent of group change
       return newGroups;
     });
   
@@ -44,7 +46,11 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
   };
 
   const removeBufferGroup = (indexToRemove) => {
-    setBufferGroups(prevGroups => prevGroups.filter((_, index) => index !== indexToRemove));
+    setBufferGroups(prevGroups => {
+      const newGroups = prevGroups.filter((_, index) => index !== indexToRemove);
+      onGroupChange(newGroups); // Notify parent of group change
+      return newGroups;
+    });
     setSelectedCourts(prev => {
       const newSelectedCourts = { ...prev };
       delete newSelectedCourts[indexToRemove];

@@ -60,6 +60,7 @@ const Home = () => {
   const [isClient, setIsClient] = useState(false);
   const [queueSortField, setQueueSortField] = useState(null);
   const [queueSortDirection, setQueueSortDirection] = useState('asc');
+  const [playerGroups, setPlayerGroups] = useState({});
 
   useEffect(() => {
     setIsClient(true);
@@ -474,6 +475,26 @@ const Home = () => {
     });
   }, [playerStats, playerTimestamps, queueSortField, queueSortDirection]);
 
+  const handleGroupChange = (newGroups) => {
+    const updatedPlayerGroups = {};
+    newGroups.forEach((group, index) => {
+      group.forEach(player => {
+        if (!updatedPlayerGroups[player.name]) {
+          updatedPlayerGroups[player.name] = [];
+        }
+        updatedPlayerGroups[player.name].push(index + 1);
+      });
+    });
+
+    setPlayerGroups(updatedPlayerGroups);
+  };
+
+  // Update the queue display to show current groups
+  const renderCurrentGroups = (player) => {
+    const groups = playerGroups[player] || [];
+    return groups.length > 0 ? groups.join('/') : '-';
+  };
+
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-gray-100">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Badminton Match Manager</h1>
@@ -698,6 +719,7 @@ const Home = () => {
         playerRanks={playerRanks} 
         onAssignToCourt={onAssignToCourt}
         courts={courts}
+        onGroupChange={handleGroupChange}
       />
 
       <Card className="mt-6 sm:mt-8">
@@ -777,8 +799,7 @@ const Home = () => {
                       {playerStats[player]?.currentCourt ? playerStats[player].currentCourt : '-'}
                     </td>
                     <td className="py-2 pr-4">
-                      {/* Add logic for Current Group here */}
-                      -
+                      {renderCurrentGroups(player)}
                     </td>
                     <td className="py-2 pr-4">
                       {playerTimestamps[player] ? formatTimestamp(playerTimestamps[player]) : '-'}
