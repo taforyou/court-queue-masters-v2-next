@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus, ArrowUpDown } from "lucide-react";
+import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus, ArrowUpDown, Undo2 } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -519,6 +519,27 @@ const Home = () => {
     return groups.length > 0 ? groups.join('/') : '-';
   };
 
+  const undoPlayerAssignment = (courtId, player) => {
+    setCourts(prevCourts => prevCourts.map(court => {
+      if (court.id === courtId) {
+        return { ...court, players: court.players.filter(p => p !== player) };
+      }
+      return court;
+    }));
+
+    setPlayerStats(prevStats => ({
+      ...prevStats,
+      [player]: {
+        ...prevStats[player],
+        current: 0,
+        currentCourt: null
+      }
+    }));
+
+    // Move the player back to the front of the queue
+    setQueue(prevQueue => [player, ...prevQueue.filter(p => p !== player)]);
+  };
+
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-gray-100">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Badminton Match Manager</h1>
@@ -663,6 +684,14 @@ const Home = () => {
                                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[p])}`}>
                                       {playerRanks[p]}
                                     </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => undoPlayerAssignment(court.id, p)}
+                                    >
+                                      <Undo2 className="h-4 w-4 text-blue-500" />
+                                    </Button>
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     <div className="flex flex-col items-center">
@@ -853,7 +882,6 @@ const Home = () => {
       </Card>
     </div>
   );  
-  
   };
   
   export default Home;
