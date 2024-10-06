@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Feather, PlusCircle, Plus, Minus, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
+import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -126,6 +126,27 @@ const Home = () => {
               setShuttlecockCount(prevCount => ({
                 ...prevCount,
                 [player]: (prevCount[player] || 0) + increment
+              }));
+            });
+          }
+        }
+        return court;
+      });
+      return updatedCourts;
+    });
+  };
+
+  const decrementShuttlecockCount = (courtId) => {
+    setCourts(prevCourts => {
+      const updatedCourts = prevCourts.map(court => {
+        if (court.id === courtId) {
+          const playerCount = court.players.length;
+          if (playerCount === 2 || playerCount === 4) {
+            const decrement = playerCount === 2 ? 0.5 : 0.25;
+            court.players.forEach(player => {
+              setShuttlecockCount(prevCount => ({
+                ...prevCount,
+                [player]: Math.max((prevCount[player] || 0) - decrement, 0)
               }));
             });
           }
@@ -502,9 +523,18 @@ const Home = () => {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8 rounded-full"
+                      onClick={() => decrementShuttlecockCount(court.id)}
+                      disabled={court.players.length !== 2 && court.players.length !== 4}
+                    >
+                      <MinusCircle className="h-4 w-4 text-red-500" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-red-500 hover:bg-red-600"
                       onClick={() => removeCourt(court.id)}
                     >
-                      <Minus className="h-4 w-4 text-red-500" />
+                      <Trash2 className="h-4 w-4 text-white" />
                     </Button>
                   </div>
                 </CardHeader>
