@@ -280,15 +280,19 @@ const Home = () => {
 
           setPlayerStats(prev => {
             const newStats = {...prev};
-            court.players.forEach(player => {
+            removedPlayers.forEach(player => {
               newStats[player] = {
                 completed: (newStats[player]?.completed || 0) + 1,
-                 current: 0,
+                current: 0,
                 currentCourt: null // Reset currentCourt when removing from court
               };
             });
             remainingPlayers.forEach(player => {
-              newStats[player].current = 1;
+              newStats[player] = {
+                ...newStats[player],
+                current: (newStats[player]?.current || 0) + 1,
+                currentCourt: courtId // Ensure currentCourt is set for remaining players
+              };
             });
             // Update player history here
             removedPlayers.forEach(player => {
