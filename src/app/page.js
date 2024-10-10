@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Feather, PlusCircle, Plus, Minus, MinusCircle, Edit2, Check, ChevronLeft, ChevronRight,UserPlus,UserMinus, ArrowUpDown, Undo2 } from "lucide-react";
+import { Trash2, Feather, PlusCircle, Plus, Check, MinusCircle, Edit2, ChevronLeft, ChevronRight,UserPlus, ArrowUpDown, Undo2 } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -779,15 +779,15 @@ const Home = () => {
                         disabled={getCheckedPlayersCount(court) !== 2}
                         className="flex-1 flex items-center justify-center"
                       >
-                        <UserMinus className="mr-2 h-4 w-4" />
-                        2 Players
+                        <Check className="mr-2 h-4 w-4" />
+                        Done 2 players
                       </Button>
                       <Button 
                         onClick={() => removePlayersFromCourt(court.id, 4)} 
                         className="flex-1 flex items-center justify-center"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        All Players
+                        <Check className="mr-2 h-4 w-4" />
+                        Done 4 players
                       </Button>
                     </div>
                     <Button 
