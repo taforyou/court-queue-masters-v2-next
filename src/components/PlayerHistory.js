@@ -158,7 +158,7 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
                 <TableHead>Name</TableHead>
                 <TableHead>Rank</TableHead>
                 <TableHead>Games</TableHead>
-                <TableHead>Feathers</TableHead>
+                <TableHead>Shuttlecocks</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead className="sticky right-0 bg-white">Actions</TableHead>
               </TableRow>
