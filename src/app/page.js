@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast"
-import { Trash2, Feather, PlusCircle, Plus, Check, MinusCircle, Edit2, ChevronLeft, ChevronRight,UserPlus, ArrowUpDown, Undo2 } from "lucide-react";
+import { Trash2, Feather, PlusCircle, Plus, Check, MinusCircle, Edit2, ChevronLeft, ChevronRight,UserPlus, ArrowUpDown, Undo2, Settings } from "lucide-react";
 import PlayerHistory from '../components/PlayerHistory';
 import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Setting from '../components/Setting';
+import { useSettings } from '../context/SettingsContext';
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -26,6 +28,7 @@ const formatTimestamp = (timestamp) => {
 
 const Home = () => {
   const { toast } = useToast()
+  const { priceMode, americanMode, regularMode } = useSettings();
 
   const getRankColor = (rank) => {
     const baseRank = rank.charAt(0);
@@ -62,6 +65,7 @@ const Home = () => {
   const [queueSortDirection, setQueueSortDirection] = useState('asc');
   const [playerGroups, setPlayerGroups] = useState({});
   const [bufferGroups, setBufferGroups] = useState([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -600,346 +604,363 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 bg-gray-100">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Badminton Match Manager</h1>
-  
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Join Queue</h2>
-        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-          <Input
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Enter your name (min 2 characters)"
-            className="flex-grow"
-          />
-          <div className="flex space-x-2">
-            <Select value={selectedRank} onValueChange={setSelectedRank}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select rank" />
-              </SelectTrigger>
-              <SelectContent>
-                {['BG-', 'BG', 'BG+', 'N-', 'N', 'N+', 'S-', 'S', 'S+', 'P-', 'P', 'P+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'].map(rank => (
-                  <SelectItem key={rank} value={rank}>{rank}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {isClient && (
-              <Button 
-                onClick={addPlayerToQueue} 
-                disabled={playerName.trim().length < 2} 
-                className="w-full sm:w-auto"
-              >
-                Join Queue
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-  
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl sm:text-2xl font-semibold">Courts</h2>
-        <Button onClick={addCourt} className="flex items-center">
-          <Plus className="mr-2 h-4 w-4" /> Add Court
+    <div className="min-h-screen p-4 sm:p-8 bg-gray-100 relative">
+      <div className="absolute top-4 right-4 z-10">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setIsSettingsOpen(true)}
+          className="h-10 w-10 rounded-full"
+        >
+          <Settings className="h-6 w-6" />
         </Button>
       </div>
-  
-      <div className="relative">
-        <div 
-          ref={courtsContainerRef}
-          className="flex overflow-x-auto gap-6 sm:gap-8 no-scrollbar"
-          style={{
-            scrollSnapType: 'x mandatory',
-            scrollBehavior: 'smooth',
-          }}
-        >
-          {courts.map((court, index) => (
-            <div 
-              key={court.id}
-              className="w-full flex-shrink-0 md:w-[calc(33.333%-1rem)]"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  {editingCourtId === court.id ? (
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={editCourtIdValue}
-                        onChange={(e) => setEditCourtIdValue(e.target.value)}
-                        className="w-20"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={saveCourtId}
-                        className="h-8 w-8 rounded-full"
-                      >
-                        <Check className="h-4 w-4 text-green-500" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <CardTitle className="text-2xl font-semibold">Court {court.id}</CardTitle>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => startEditingCourtId(court.id)}
-                        className="h-8 w-8 rounded-full"
-                      >
-                        <Edit2 className="h-4 w-4 text-blue-500" />
-                      </Button>
-                    </div>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <Feather className="h-4 w-4 text-gray-500" />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => incrementShuttlecockCount(court.id)}
-                      disabled={court.players.length !== 2 && court.players.length !== 4}
-                    >
-                      <PlusCircle className="h-4 w-4 text-green-500" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => decrementShuttlecockCount(court.id)}
-                      disabled={court.players.length !== 2 && court.players.length !== 4}
-                    >
-                      <MinusCircle className="h-4 w-4 text-red-500" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="h-8 w-8 rounded-full bg-red-500 hover:bg-red-600"
-                      onClick={() => removeCourt(court.id)}
-                      disabled={court.players.length > 0}
-                    >
-                      <Trash2 className="h-4 w-4 text-white" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm text-gray-500">Current players:</h3>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-500">Games count:</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {court.players.reduce((acc, player, idx) => {
-                        if (idx % 2 === 0) {
-                          acc.push(
-                            <div key={idx} className="bg-gray-100 rounded-md p-2">
-                              {[player, court.players[idx + 1]].map((p, i) => p && (
-                                <div key={`${court.id}-${idx + i}`} className="flex justify-between items-center mb-2 last:mb-0">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`player-${court.id}-${idx + i}`}
-                                      checked={court.checkedPlayers[idx + i] || false}
-                                      onCheckedChange={() => handleCheckboxChange(court.id, idx + i)}
-                                    />
-                                    <label htmlFor={`player-${court.id}-${idx + i}`}>{p}</label>
-                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[p])}`}>
-                                      {playerRanks[p]}
-                                    </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 p-0"
-                                      onClick={() => undoPlayerAssignment(court.id, p)}
-                                    >
-                                      <Undo2 className="h-4 w-4 text-blue-500" />
-                                    </Button>
-                                  </div>
-                                  <div className="flex items-center space-x-4">
-                                    <span className="text-sm text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
-                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-yellow-400 text-white`}>
-                                      {(playerStats[p]?.current || 0)}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        }
-                        return acc;
-                      }, [])}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => removePlayersFromCourt(court.id, 2)}
-                        disabled={getCheckedPlayersCount(court) !== 2}
-                        className="flex-1 flex items-center justify-center"
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Done 2 players
-                      </Button>
-                      <Button 
-                        onClick={() => removePlayersFromCourt(court.id, 4)} 
-                        className="flex-1 flex items-center justify-center"
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Done 4 players
-                      </Button>
-                    </div>
-                    <Button 
-                      onClick={() => addPlayersToCourt(court.id)} 
-                      className="w-full flex items-center justify-center"
-                      disabled={court.players.length >= 4}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Players from Queue
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
-        </div>
-        {courts.length > 3 && (
-          <div className="hidden md:flex justify-between mt-4">
-            <Button
-              onClick={() => navigateCourts('left')}
-              disabled={currentCourtIndex === 0}
-              className="p-2"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <Button
-              onClick={() => navigateCourts('right')}
-              disabled={currentCourtIndex === Math.max(0, courts.length - 3)}
-              className="p-2"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-          </div>
-        )}
-      </div>
-  
-      <Buffer 
-        selectedPlayers={selectedPlayers}
-        setSelectedPlayers={setSelectedPlayers}
-        playerRanks={playerRanks} 
-        onAssignToCourt={assignPlayersToCourt}
-        courts={courts}
-        onGroupChange={handleGroupChange}
-        bufferGroups={bufferGroups}
-        setBufferGroups={setBufferGroups}
-      />
 
-      <Card className="mt-6 sm:mt-8">
-        <CardHeader>
-          <CardTitle>Queue</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-sm font-medium text-gray-500 border-b">
-                  <th className="pb-2 pr-4">Select</th>
-                  <th className="pb-2 pr-4">Name</th>
-                  <th className="pb-2 pr-4">Rank</th>
-                  <th className="pb-2 pr-4">Shuttlecocks</th>
-                  <th className="pb-2 pr-4">
-                    Games
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => sortQueue('games')}
-                    >
-                      <ArrowUpDown className="h-4 w-4" />
-                    </Button>
-                  </th>
-                  <th className="pb-2 pr-4">Current Court</th>
-                  <th className="pb-2 pr-4">Current Group</th>
-                  <th className="pb-2 pr-4">
-                    Timestamp
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => sortQueue('timestamp')}
-                    >
-                      <ArrowUpDown className="h-4 w-4" />
-                    </Button>
-                  </th>
-                  <th className="pb-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {queue.map((player, index) => (
-                  <tr key={index} className="border-b last:border-b-0">
-                    <td className="py-2 pr-4">
-                      <Checkbox
-                        id={`queue-player-${index}`}
-                        checked={selectedPlayers.includes(player)}
-                        onCheckedChange={() => handlePlayerSelection(player)}
-                      />
-                    </td>
-                    <td className="py-2 pr-4">{player}</td>
-                    <td className="py-2 pr-4">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[player])}`}>
-                        {playerRanks[player]}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">
-                      <div className="flex items-center space-x-1">
-                        <Feather className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-500">{shuttlecockCount[player]?.toFixed(2) || '0.00'}</span>
+      {isSettingsOpen && (
+        <Setting onClose={() => setIsSettingsOpen(false)} />
+      )}
+
+      <div className={isSettingsOpen ? 'filter blur-sm pointer-events-none' : ''}>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center">Badminton Match Manager</h1>
+    
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Join Queue</h2>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+            <Input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter your name (min 2 characters)"
+              className="flex-grow"
+            />
+            <div className="flex space-x-2">
+              <Select value={selectedRank} onValueChange={setSelectedRank}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Select rank" />
+                </SelectTrigger>
+                <SelectContent>
+                  {['BG-', 'BG', 'BG+', 'N-', 'N', 'N+', 'S-', 'S', 'S+', 'P-', 'P', 'P+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'].map(rank => (
+                    <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isClient && (
+                <Button 
+                  onClick={addPlayerToQueue} 
+                  disabled={playerName.trim().length < 2} 
+                  className="w-full sm:w-auto"
+                >
+                  Join Queue
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+    
+        <div className="mb-4 flex justify-between items-center">
+          <h2 className="text-xl sm:text-2xl font-semibold">Courts</h2>
+          <Button onClick={addCourt} className="flex items-center">
+            <Plus className="mr-2 h-4 w-4" /> Add Court
+          </Button>
+        </div>
+    
+        <div className="relative">
+          <div 
+            ref={courtsContainerRef}
+            className="flex overflow-x-auto gap-6 sm:gap-8 no-scrollbar"
+            style={{
+              scrollSnapType: 'x mandatory',
+              scrollBehavior: 'smooth',
+            }}
+          >
+            {courts.map((court, index) => (
+              <div 
+                key={court.id}
+                className="w-full flex-shrink-0 md:w-[calc(33.333%-1rem)]"
+                style={{ scrollSnapAlign: 'start' }}
+              >
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    {editingCourtId === court.id ? (
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          value={editCourtIdValue}
+                          onChange={(e) => setEditCourtIdValue(e.target.value)}
+                          className="w-20"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={saveCourtId}
+                          className="h-8 w-8 rounded-full"
+                        >
+                          <Check className="h-4 w-4 text-green-500" />
+                        </Button>
                       </div>
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                        playerStats[player]?.current > 0
-                          ? 'bg-blue-500 text-white'
-                          : playerStats[player]?.completed > 0
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-300 text-gray-600'
-                      }`}>
-                        {playerStats[player]?.completed || 0}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">
-                      {playerStats[player]?.currentCourt ? playerStats[player].currentCourt : '-'}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {renderCurrentGroups(player)}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {playerTimestamps[player] ? formatTimestamp(playerTimestamps[player]) : '-'}
-                    </td>
-                    <td className="py-2">
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <CardTitle className="text-2xl font-semibold">Court {court.id}</CardTitle>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => startEditingCourtId(court.id)}
+                          className="h-8 w-8 rounded-full"
+                        >
+                          <Edit2 className="h-4 w-4 text-blue-500" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-2">
+                      <Feather className="h-4 w-4 text-gray-500" />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => incrementShuttlecockCount(court.id)}
+                        disabled={court.players.length !== 2 && court.players.length !== 4}
+                      >
+                        <PlusCircle className="h-4 w-4 text-green-500" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => decrementShuttlecockCount(court.id)}
+                        disabled={court.players.length !== 2 && court.players.length !== 4}
+                      >
+                        <MinusCircle className="h-4 w-4 text-red-500" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-red-500 hover:bg-red-600"
+                        onClick={() => removeCourt(court.id)}
+                        disabled={court.players.length > 0}
+                      >
+                        <Trash2 className="h-4 w-4 text-white" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm text-gray-500">Current players:</h3>
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-gray-500">Games count:</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {court.players.reduce((acc, player, idx) => {
+                          if (idx % 2 === 0) {
+                            acc.push(
+                              <div key={idx} className="bg-gray-100 rounded-md p-2">
+                                {[player, court.players[idx + 1]].map((p, i) => p && (
+                                  <div key={`${court.id}-${idx + i}`} className="flex justify-between items-center mb-2 last:mb-0">
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`player-${court.id}-${idx + i}`}
+                                        checked={court.checkedPlayers[idx + i] || false}
+                                        onCheckedChange={() => handleCheckboxChange(court.id, idx + i)}
+                                      />
+                                      <label htmlFor={`player-${court.id}-${idx + i}`}>{p}</label>
+                                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[p])}`}>
+                                        {playerRanks[p]}
+                                      </span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => undoPlayerAssignment(court.id, p)}
+                                      >
+                                        <Undo2 className="h-4 w-4 text-blue-500" />
+                                      </Button>
+                                    </div>
+                                    <div className="flex items-center space-x-4">
+                                      <span className="text-sm text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
+                                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold bg-yellow-400 text-white`}>
+                                        {(playerStats[p]?.current || 0)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return acc;
+                        }, [])}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => removePlayersFromCourt(court.id, 2)}
+                          disabled={getCheckedPlayersCount(court) !== 2}
+                          className="flex-1 flex items-center justify-center"
+                        >
+                          <Check className="mr-2 h-4 w-4" />
+                          Done 2 players
+                        </Button>
+                        <Button 
+                          onClick={() => removePlayersFromCourt(court.id, 4)} 
+                          className="flex-1 flex items-center justify-center"
+                        >
+                          <Check className="mr-2 h-4 w-4" />
+                          Done 4 players
+                        </Button>
+                      </div>
+                      <Button 
+                        onClick={() => addPlayersToCourt(court.id)} 
+                        className="w-full flex items-center justify-center"
+                        disabled={court.players.length >= 4}
+                      >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Players from Queue
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+          {courts.length > 3 && (
+            <div className="hidden md:flex justify-between mt-4">
+              <Button
+                onClick={() => navigateCourts('left')}
+                disabled={currentCourtIndex === 0}
+                className="p-2"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+              <Button
+                onClick={() => navigateCourts('right')}
+                disabled={currentCourtIndex === Math.max(0, courts.length - 3)}
+                className="p-2"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            </div>
+          )}
+        </div>
+    
+        <Buffer 
+          selectedPlayers={selectedPlayers}
+          setSelectedPlayers={setSelectedPlayers}
+          playerRanks={playerRanks} 
+          onAssignToCourt={assignPlayersToCourt}
+          courts={courts}
+          onGroupChange={handleGroupChange}
+          bufferGroups={bufferGroups}
+          setBufferGroups={setBufferGroups}
+        />
+
+        <Card className="mt-6 sm:mt-8">
+          <CardHeader>
+            <CardTitle>Queue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm font-medium text-gray-500 border-b">
+                    <th className="pb-2 pr-4">Select</th>
+                    <th className="pb-2 pr-4">Name</th>
+                    <th className="pb-2 pr-4">Rank</th>
+                    <th className="pb-2 pr-4">Shuttlecocks</th>
+                    <th className="pb-2 pr-4">
+                      Games
                       <Button
                         variant="ghost"
-                        size="icon"
-                        onClick={() => removePlayerFromQueue(player)}
-                        className="h-8 w-8 p-0"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => sortQueue('games')}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <ArrowUpDown className="h-4 w-4" />
                       </Button>
-                    </td>
+                    </th>
+                    <th className="pb-2 pr-4">Current Court</th>
+                    <th className="pb-2 pr-4">Current Group</th>
+                    <th className="pb-2 pr-4">
+                      Timestamp
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => sortQueue('timestamp')}
+                      >
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    </th>
+                    <th className="pb-2">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="mt-6 sm:mt-8">
-        <PlayerHistory 
-          playerHistory={playerHistory}
-          updatePlayerHistory={setPlayerHistory}
-        />
-      </Card>
+                </thead>
+                <tbody>
+                  {queue.map((player, index) => (
+                    <tr key={index} className="border-b last:border-b-0">
+                      <td className="py-2 pr-4">
+                        <Checkbox
+                          id={`queue-player-${index}`}
+                          checked={selectedPlayers.includes(player)}
+                          onCheckedChange={() => handlePlayerSelection(player)}
+                        />
+                      </td>
+                      <td className="py-2 pr-4">{player}</td>
+                      <td className="py-2 pr-4">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[player])}`}>
+                          {playerRanks[player]}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <div className="flex items-center space-x-1">
+                          <Feather className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-500">{shuttlecockCount[player]?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                          playerStats[player]?.current > 0
+                            ? 'bg-blue-500 text-white'
+                            : playerStats[player]?.completed > 0
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}>
+                          {playerStats[player]?.completed || 0}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-4">
+                        {playerStats[player]?.currentCourt ? playerStats[player].currentCourt : '-'}
+                      </td>
+                      <td className="py-2 pr-4">
+                        {renderCurrentGroups(player)}
+                      </td>
+                      <td className="py-2 pr-4">
+                        {playerTimestamps[player] ? formatTimestamp(playerTimestamps[player]) : '-'}
+                      </td>
+                      <td className="py-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removePlayerFromQueue(player)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="mt-6 sm:mt-8">
+          <PlayerHistory 
+            playerHistory={playerHistory}
+            updatePlayerHistory={setPlayerHistory}
+          />
+        </Card>
+      </div>
     </div>
   );  
   };

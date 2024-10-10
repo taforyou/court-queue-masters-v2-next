@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Edit2, Save, X } from "lucide-react";
+import { useSettings } from '../context/SettingsContext';
+import { useToast } from "@/hooks/use-toast";
 
 const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
   const [editingPlayer, setEditingPlayer] = useState(null);
+  const { priceMode, americanMode, regularMode } = useSettings();
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedHistory = localStorage.getItem('playerHistory');
@@ -52,10 +56,39 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           Player History
-          <Button onClick={clearHistory} variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear All
-          </Button>
+          <div className="flex items-center space-x-4">
+            {priceMode && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium">
+                  {priceMode === 'american' ? 'American Share:' : 'Regular:'}
+                </span>
+                {priceMode === 'american' ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-500 text-white hover:bg-green-600"
+                    onClick={() => {
+                      toast({
+                        title: "American Share",
+                        description: `Combined Fee: $${americanMode?.combinedFee || '0.00'}`,
+                      });
+                    }}
+                  >
+                    ${americanMode?.combinedFee || '0.00'}
+                  </Button>
+                ) : (
+                  <span className="text-sm">
+                    Court: ${regularMode?.courtFee || '0.00'}, 
+                    Shuttlecock: ${regularMode?.shuttlecockFee || '0.00'}
+                  </span>
+                )}
+              </div>
+            )}
+            <Button onClick={clearHistory} variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear All
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="overflow-x-auto">

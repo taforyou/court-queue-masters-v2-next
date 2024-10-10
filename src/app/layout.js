@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { SettingsProvider } from '@/context/SettingsContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,7 +16,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <TooltipProvider>
-          {children}
+          <SettingsProvider>
+            {children}
+          </SettingsProvider>
           <Toaster />
         </TooltipProvider>
       </body>
