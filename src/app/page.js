@@ -793,6 +793,7 @@ const Home = () => {
                     <Button 
                       onClick={() => addPlayersToCourt(court.id)} 
                       className="w-full flex items-center justify-center"
+                      disabled={court.players.length >= 4}
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
                       Players from Queue
