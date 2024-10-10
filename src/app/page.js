@@ -429,23 +429,22 @@ const Home = () => {
   // Add this new function to remove players from the buffer
   const removePlayersFromBuffer = (playersToRemove) => {
     setBufferGroups(prevGroups => {
-      // Check if we're trying to remove exactly 4 players
-      if (playersToRemove.length !== 4) {
-        // If not, don't remove any players
-        return prevGroups;
-      }
-
-      // Find the group that contains all 4 players
+      // Find the group that contains all players to remove
       const groupIndex = prevGroups.findIndex(group => 
         playersToRemove.every(player => group.some(p => p.name === player))
       );
 
-      // If we found a group with all 4 players, remove it
+      // If we found the group, remove it
       if (groupIndex !== -1) {
-        return prevGroups.filter((_, index) => index !== groupIndex);
+        const newGroups = prevGroups.filter((_, index) => index !== groupIndex);
+        
+        // Notify parent of group change
+        handleGroupChange(newGroups);
+
+        return newGroups;
       }
 
-      // If we didn't find a group with all 4 players, don't remove any
+      // If we didn't find the group, don't remove any
       return prevGroups;
     });
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -17,6 +17,11 @@ const Buffer = ({
 }) => {
   const { toast } = useToast()
   const [selectedCourts, setSelectedCourts] = useState({});
+
+  useEffect(() => {
+    // Update internal state based on bufferGroups prop
+    // This might include updating selectedCourts
+  }, [bufferGroups]);
 
   const addGroup = () => {
     setBufferGroups(prevGroups => {
