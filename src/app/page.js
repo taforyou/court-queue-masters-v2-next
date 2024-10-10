@@ -12,6 +12,8 @@ import Buffer from '../components/Buffer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Setting from '../components/Setting';
 import { useSettings } from '../context/SettingsContext';
+import { cn } from "@/lib/utils"; // Make sure you have this utility function
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -25,6 +27,29 @@ const formatTimestamp = (timestamp) => {
     hour12: true
   }).replace(',', '').replace(/,([^\s])/, ', $1');
 };
+
+const CustomCheckbox = React.forwardRef(({ className, ...props }, ref) => {
+  const isChecked = props.checked;
+  const index = props['data-index'];
+
+  return (
+    <CheckboxPrimitive.Root
+      ref={ref}
+      className={cn(
+        "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary",
+        isChecked && index < 2 ? "data-[state=checked]:bg-red-500" : "",
+        isChecked && index >= 2 ? "data-[state=checked]:bg-blue-500" : "",
+        className
+      )}
+      {...props}
+    >
+      <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-white")}>
+        <Check className="h-4 w-4" />
+      </CheckboxPrimitive.Indicator>
+    </CheckboxPrimitive.Root>
+  )
+})
+CustomCheckbox.displayName = "CustomCheckbox"
 
 const Home = () => {
   const { toast } = useToast()
@@ -475,11 +500,23 @@ const Home = () => {
   };
 
   const handlePlayerSelection = (player) => {
-    setSelectedPlayers(prev => 
-      prev.includes(player) 
-        ? prev.filter(p => p !== player)
-        : [...prev, player]
-    );
+    setSelectedPlayers(prev => {
+      if (prev.includes(player)) {
+        // If the player is already selected, remove them
+        return prev.filter(p => p !== player);
+      } else if (prev.length < 4) {
+        // If less than 4 players are selected, add the new player
+        return [...prev, player];
+      } else {
+        // If 4 players are already selected, show a toast and don't add the new player
+        toast({
+          title: "Maximum Selection Reached",
+          description: "You can only select up to 4 players at a time.",
+          variant: "warning",
+        });
+        return prev;
+      }
+    });
   };
 
   const removePlayerFromQueue = (playerToRemove) => {
@@ -899,10 +936,11 @@ const Home = () => {
                   {queue.map((player, index) => (
                     <tr key={index} className="border-b last:border-b-0">
                       <td className="py-2 pr-4">
-                        <Checkbox
+                        <CustomCheckbox
                           id={`queue-player-${index}`}
                           checked={selectedPlayers.includes(player)}
                           onCheckedChange={() => handlePlayerSelection(player)}
+                          data-index={selectedPlayers.indexOf(player)}
                         />
                       </td>
                       <td className="py-2 pr-4">{player}</td>
