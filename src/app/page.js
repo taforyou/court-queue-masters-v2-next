@@ -61,6 +61,7 @@ const Home = () => {
   const [queueSortField, setQueueSortField] = useState(null);
   const [queueSortDirection, setQueueSortDirection] = useState('asc');
   const [playerGroups, setPlayerGroups] = useState({});
+  const [bufferGroups, setBufferGroups] = useState([]);
 
   useEffect(() => {
     setIsClient(true);
@@ -383,7 +384,7 @@ const Home = () => {
       return; // Exit the function early
     }
 
-    // If we've reached here, it's safe to assign the players
+    // If we've reached here, it's safe to assign the players and remove them from the buffer if possible
     setCourts(prevCourts => prevCourts.map(court => {
       if (court.id.toString() === courtId.toString()) {
         return { ...court, players: [...court.players, ...playersToCheck] };
@@ -421,6 +422,32 @@ const Home = () => {
     });
 
     setSelectedPlayers([]);
+    // Add this line to remove the assigned players from the buffer
+    removePlayersFromBuffer(playersToCheck);
+  };
+
+  // Add this new function to remove players from the buffer
+  const removePlayersFromBuffer = (playersToRemove) => {
+    setBufferGroups(prevGroups => {
+      // Check if we're trying to remove exactly 4 players
+      if (playersToRemove.length !== 4) {
+        // If not, don't remove any players
+        return prevGroups;
+      }
+
+      // Find the group that contains all 4 players
+      const groupIndex = prevGroups.findIndex(group => 
+        playersToRemove.every(player => group.some(p => p.name === player))
+      );
+
+      // If we found a group with all 4 players, remove it
+      if (groupIndex !== -1) {
+        return prevGroups.filter((_, index) => index !== groupIndex);
+      }
+
+      // If we didn't find a group with all 4 players, don't remove any
+      return prevGroups;
+    });
   };
 
   // Update the addPlayersToCourt function to prioritize selected players
@@ -543,6 +570,7 @@ const Home = () => {
     });
 
     setPlayerGroups(updatedPlayerGroups);
+    setBufferGroups(newGroups);
   };
 
   // Update the queue display to show current groups
@@ -803,6 +831,8 @@ const Home = () => {
         onAssignToCourt={assignPlayersToCourt}
         courts={courts}
         onGroupChange={handleGroupChange}
+        bufferGroups={bufferGroups}
+        setBufferGroups={setBufferGroups}
       />
 
       <Card className="mt-6 sm:mt-8">

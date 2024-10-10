@@ -5,9 +5,17 @@ import { Button } from './ui/button';
 import { UserPlus, PlayCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCourt, courts, onGroupChange }) => {
+const Buffer = ({ 
+  selectedPlayers, 
+  setSelectedPlayers, 
+  playerRanks, 
+  onAssignToCourt, 
+  courts, 
+  onGroupChange, 
+  bufferGroups,
+  setBufferGroups
+}) => {
   const { toast } = useToast()
-  const [bufferGroups, setBufferGroups] = useState([]);
   const [selectedCourts, setSelectedCourts] = useState({});
 
   const addGroup = () => {
@@ -69,8 +77,8 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
           variant: "destructive",
         });
       } else {
-        onAssignToCourt(bufferGroups[index].map(player => player.name), selectedCourt);
-        removeBufferGroup(index);
+        const playersToAssign = bufferGroups[index].map(player => player.name);
+        onAssignToCourt(playersToAssign, selectedCourt);
       }
     } else {
       toast({
@@ -168,6 +176,7 @@ const Buffer = ({ selectedPlayers, setSelectedPlayers, playerRanks, onAssignToCo
                     <Button
                       onClick={() => addPlayerToGroup(index)}
                       className="w-full sm:w-auto mb-2 sm:mb-0"
+                      disabled={group.length >= 4}
                     >
                       <UserPlus className="mr-2 h-4 w-4" />
                       Player from Queue
