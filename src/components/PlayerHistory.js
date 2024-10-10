@@ -39,7 +39,15 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
   };
 
   const handleEditChange = (e, field) => {
-    setEditingPlayer({ ...editingPlayer, [field]: e.target.value });
+    let value;
+    if (field === 'gamesPlayed') {
+      value = parseInt(e.target.value, 10) || 0;
+    } else if (field === 'featherCount') {
+      value = parseFloat(e.target.value) || 0;
+    } else {
+      value = e.target.value;
+    }
+    setEditingPlayer({ ...editingPlayer, [field]: value });
   };
 
   const saveEdit = () => {
@@ -49,6 +57,49 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
     localStorage.setItem('playerHistory', JSON.stringify(newHistory));
     updatePlayerHistory(newHistory);
     setEditingPlayer(null);
+  };
+
+  const updatePrices = () => {
+    if (priceMode === 'regular' && regularMode) {
+      const courtFee = parseFloat(regularMode.courtFee) || 0;
+      const shuttlecockFee = parseFloat(regularMode.shuttlecockFee) || 0;
+      const newHistory = playerHistory.map(player => ({
+        ...player,
+        price: (courtFee + (player.featherCount * 4 * shuttlecockFee)).toFixed(2)
+      }));
+      localStorage.setItem('playerHistory', JSON.stringify(newHistory));
+      updatePlayerHistory(newHistory);
+      toast({
+        title: "Prices Updated",
+        description: "All player prices have been updated and saved.",
+      });
+    }
+  };
+
+  const updateAmericanSharePrices = () => {
+    if (priceMode === 'american' && americanMode) {
+      const combinedFee = parseFloat(americanMode.combinedFee) || 0;
+      const playerCount = playerHistory.length;
+      if (playerCount > 0) {
+        const pricePerPlayer = (combinedFee / playerCount).toFixed(2);
+        const newHistory = playerHistory.map(player => ({
+          ...player,
+          price: pricePerPlayer
+        }));
+        localStorage.setItem('playerHistory', JSON.stringify(newHistory));
+        updatePlayerHistory(newHistory);
+        toast({
+          title: "Prices Updated",
+          description: `All player prices have been updated to ฿${pricePerPlayer} each.`,
+        });
+      } else {
+        toast({
+          title: "No Players",
+          description: "There are no players to update prices for.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   return (
@@ -67,20 +118,25 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
                     variant="outline"
                     size="sm"
                     className="bg-green-500 text-white hover:bg-green-600"
+                    onClick={updateAmericanSharePrices}
+                  >
+                    ฿{americanMode?.combinedFee || '0.00'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-500 text-white hover:bg-green-600"
                     onClick={() => {
+                      updatePrices();
                       toast({
-                        title: "American Share",
-                        description: `Combined Fee: $${americanMode?.combinedFee || '0.00'}`,
+                        title: "Regular Fees",
+                        description: `Court: ฿${regularMode?.courtFee || '0.00'}, Shuttlecock: ฿${regularMode?.shuttlecockFee || '0.00'}`,
                       });
                     }}
                   >
-                    ${americanMode?.combinedFee || '0.00'}
+                    Court Fee : {regularMode?.courtFee || '0.00'} ฿ | Shuttlecock Fee : {regularMode?.shuttlecockFee || '0.00'} ฿
                   </Button>
-                ) : (
-                  <span className="text-sm">
-                    Court: ${regularMode?.courtFee || '0.00'}, 
-                    Shuttlecock: ${regularMode?.shuttlecockFee || '0.00'}
-                  </span>
                 )}
               </div>
             )}
@@ -115,8 +171,8 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
                     <>
                       <TableCell><Input value={editingPlayer.name} onChange={(e) => handleEditChange(e, 'name')} /></TableCell>
                       <TableCell><Input value={editingPlayer.rank} onChange={(e) => handleEditChange(e, 'rank')} /></TableCell>
-                      <TableCell><Input value={editingPlayer.gamesPlayed} onChange={(e) => handleEditChange(e, 'gamesPlayed')} /></TableCell>
-                      <TableCell><Input value={editingPlayer.featherCount} onChange={(e) => handleEditChange(e, 'featherCount')} /></TableCell>
+                      <TableCell><Input type="number" value={editingPlayer.gamesPlayed} onChange={(e) => handleEditChange(e, 'gamesPlayed')} /></TableCell>
+                      <TableCell><Input type="number" step="0.01" value={editingPlayer.featherCount} onChange={(e) => handleEditChange(e, 'featherCount')} /></TableCell>
                       <TableCell><Input value={editingPlayer.price || ''} onChange={(e) => handleEditChange(e, 'price')} /></TableCell>
                       <TableCell className="sticky right-0 bg-white">
                         <Button onClick={saveEdit} variant="ghost" size="sm" className="mr-1">
@@ -132,7 +188,7 @@ const PlayerHistory = ({ playerHistory, updatePlayerHistory }) => {
                       <TableCell>{player.name}</TableCell>
                       <TableCell>{player.rank}</TableCell>
                       <TableCell>{player.gamesPlayed}</TableCell>
-                      <TableCell>{player.featherCount.toFixed(2)}</TableCell>
+                      <TableCell>{parseFloat(player.featherCount).toFixed(2)}</TableCell>
                       <TableCell>{player.price || '-'}</TableCell>
                       <TableCell className="sticky right-0 bg-white">
                         <Button onClick={() => startEditing(player)} variant="ghost" size="sm" className="mr-1">
