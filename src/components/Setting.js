@@ -7,27 +7,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useSettings } from '../context/SettingsContext';
+import { Switch } from "@/components/ui/switch";
 
 const Setting = ({ onClose }) => {
-  const { priceMode, americanMode, regularMode, updateSettings } = useSettings();
+  const { priceMode, americanMode, regularMode, groupMode, advancedHistory, updateSettings } = useSettings();
   const [localPriceMode, setLocalPriceMode] = useState(priceMode);
   const [localRegularMode, setLocalRegularMode] = useState(regularMode || { courtFee: '', shuttlecockFee: '' });
   const [localAmericanMode, setLocalAmericanMode] = useState(americanMode || { combinedFee: '' });
+  const [localGroupMode, setLocalGroupMode] = useState(groupMode);
+  const [localAdvancedHistory, setLocalAdvancedHistory] = useState(advancedHistory);
 
   useEffect(() => {
     setLocalPriceMode(priceMode);
     setLocalRegularMode(regularMode || { courtFee: '', shuttlecockFee: '' });
     setLocalAmericanMode(americanMode || { combinedFee: '' });
-  }, [priceMode, regularMode, americanMode]);
+    setLocalGroupMode(groupMode);
+    setLocalAdvancedHistory(advancedHistory);
+  }, [priceMode, regularMode, americanMode, groupMode, advancedHistory]);
 
   const handleReset = () => {
     setLocalPriceMode('regular');
     setLocalRegularMode({ courtFee: '', shuttlecockFee: '' });
     setLocalAmericanMode({ combinedFee: '' });
+    setLocalGroupMode(false);
+    setLocalAdvancedHistory(false);
   };
 
   const handleSave = () => {
-    updateSettings(localPriceMode, localAmericanMode, localRegularMode);
+    updateSettings(localPriceMode, localAmericanMode, localRegularMode, localGroupMode, localAdvancedHistory);
     onClose();
   };
 
@@ -45,56 +52,79 @@ const Setting = ({ onClose }) => {
             <X className="h-6 w-6" />
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <RadioGroup value={localPriceMode} onValueChange={setLocalPriceMode}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="regular" id="regular" />
-              <Label htmlFor="regular">Regular Mode</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="american" id="american" />
-              <Label htmlFor="american">American Share Mode</Label>
-            </div>
-          </RadioGroup>
+        <CardContent className="space-y-6">
+          <Section title="Pricing Mode">
+            <RadioGroup value={localPriceMode} onValueChange={setLocalPriceMode}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="regular" id="regular" />
+                <Label htmlFor="regular">Regular Mode</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="american" id="american" />
+                <Label htmlFor="american">American Share Mode</Label>
+              </div>
+            </RadioGroup>
+          </Section>
 
-          {localPriceMode === 'regular' ? (
-            <>
+          <Section title="Fee Settings">
+            {localPriceMode === 'regular' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="courtFee">Court Fee</Label>
+                  <Input
+                    type="number"
+                    id="courtFee"
+                    value={localRegularMode.courtFee}
+                    onChange={(e) => setLocalRegularMode({ ...localRegularMode, courtFee: e.target.value })}
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shuttlecockFee">Shuttlecock Fee</Label>
+                  <Input
+                    type="number"
+                    id="shuttlecockFee"
+                    value={localRegularMode.shuttlecockFee}
+                    onChange={(e) => setLocalRegularMode({ ...localRegularMode, shuttlecockFee: e.target.value })}
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+              </>
+            ) : (
               <div className="space-y-2">
-                <Label htmlFor="courtFee">Court Fee</Label>
+                <Label htmlFor="combinedFee">Combined Fee (Court + Shuttlecock)</Label>
                 <Input
                   type="number"
-                  id="courtFee"
-                  value={localRegularMode.courtFee}
-                  onChange={(e) => setLocalRegularMode({ ...localRegularMode, courtFee: e.target.value })}
+                  id="combinedFee"
+                  value={localAmericanMode.combinedFee}
+                  onChange={(e) => setLocalAmericanMode({ ...localAmericanMode, combinedFee: e.target.value })}
                   step="0.01"
                   placeholder="0.00"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="shuttlecockFee">Shuttlecock Fee</Label>
-                <Input
-                  type="number"
-                  id="shuttlecockFee"
-                  value={localRegularMode.shuttlecockFee}
-                  onChange={(e) => setLocalRegularMode({ ...localRegularMode, shuttlecockFee: e.target.value })}
-                  step="0.01"
-                  placeholder="0.00"
-                />
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="combinedFee">Combined Fee (Court + Shuttlecock)</Label>
-              <Input
-                type="number"
-                id="combinedFee"
-                value={localAmericanMode.combinedFee}
-                onChange={(e) => setLocalAmericanMode({ ...localAmericanMode, combinedFee: e.target.value })}
-                step="0.01"
-                placeholder="0.00"
+            )}
+          </Section>
+
+          <Section title="Additional Settings">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="groupMode">Group Mode</Label>
+              <Switch
+                id="groupMode"
+                checked={localGroupMode}
+                onCheckedChange={setLocalGroupMode}
               />
             </div>
-          )}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="advancedHistory">Advanced Player History</Label>
+              <Switch
+                id="advancedHistory"
+                checked={localAdvancedHistory}
+                onCheckedChange={setLocalAdvancedHistory}
+              />
+            </div>
+          </Section>
 
           <Button 
             onClick={handleSave} 
@@ -107,5 +137,12 @@ const Setting = ({ onClose }) => {
     </div>
   );
 };
+
+const Section = ({ title, children }) => (
+  <div className="space-y-3">
+    <h3 className="text-lg font-semibold">{title}</h3>
+    {children}
+  </div>
+);
 
 export default Setting;
