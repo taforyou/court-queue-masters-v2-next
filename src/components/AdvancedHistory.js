@@ -4,28 +4,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const AdvancedHistory = ({ matchHistory }) => {
+  // Process match history to group by player
+  const playerMatches = matchHistory.reduce((acc, match) => {
+    [...match.team1, ...match.team2].forEach(player => {
+      if (!acc[player]) acc[player] = [];
+      const opponents = [...match.team1, ...match.team2].filter(p => p !== player);
+      acc[player].push({
+        court: match.courtId,
+        teammates: match.team1.includes(player) ? match.team1.filter(p => p !== player) : match.team2.filter(p => p !== player),
+        opponents: match.team1.includes(player) ? match.team2 : match.team1
+      });
+    });
+    return acc;
+  }, {});
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Advanced Match History</CardTitle>
+        <CardTitle>Player Match History</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date & Time</TableHead>
-              <TableHead>Court</TableHead>
-              <TableHead>Team 1</TableHead>
-              <TableHead>Team 2</TableHead>
+              <TableHead>Player</TableHead>
+              <TableHead>Match History</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matchHistory.map((match, index) => (
-              <TableRow key={index}>
-                <TableCell>{new Date(match.timestamp).toLocaleString()}</TableCell>
-                <TableCell>Court {match.courtId}</TableCell>
-                <TableCell>{match.team1.join(', ')}</TableCell>
-                <TableCell>{match.team2.join(', ')}</TableCell>
+            {Object.entries(playerMatches).map(([player, matches]) => (
+              <TableRow key={player}>
+                <TableCell>{player}</TableCell>
+                <TableCell>
+                  {matches.map((match, index) => (
+                    <div key={index}>
+                      Played with {match.teammates.join(', ')} against {match.opponents.join(', ')} on Court {match.court}
+                    </div>
+                  ))}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
