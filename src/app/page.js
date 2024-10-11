@@ -14,6 +14,7 @@ import Setting from '../components/Setting';
 import { useSettings } from '../context/SettingsContext';
 import { cn } from "@/lib/utils"; // Make sure you have this utility function
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import AdvancedHistory from '../components/AdvancedHistory';
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -91,6 +92,7 @@ const Home = () => {
   const [playerGroups, setPlayerGroups] = useState({});
   const [bufferGroups, setBufferGroups] = useState([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [matchHistory, setMatchHistory] = useState([]);
 
   useEffect(() => {
     setIsClient(true);
@@ -304,6 +306,17 @@ const Home = () => {
           } else {
             removedPlayers = court.players.slice(0, count);
             remainingPlayers = court.players.slice(count);
+          }
+
+          // Record match history
+          if (advancedHistory) {
+            const newMatch = {
+              timestamp: Date.now(),
+              courtId: courtId,
+              team1: removedPlayers.slice(0, 2),
+              team2: removedPlayers.slice(2, 4)
+            };
+            setMatchHistory(prevHistory => [...prevHistory, newMatch]);
           }
 
           const currentTime = Date.now();
@@ -992,9 +1005,11 @@ const Home = () => {
             </div>
           </CardContent>
         </Card>
-        {advancedHistory && (<Card className="mt-6 sm:mt-8">
-          <div>Advanced history will be implemented here</div>
-        </Card>)}
+        {advancedHistory && (
+          <Card className="mt-6 sm:mt-8">
+            <AdvancedHistory matchHistory={matchHistory} />
+          </Card>
+        )}
         <Card className="mt-6 sm:mt-8">
           <PlayerHistory 
             playerHistory={playerHistory}
