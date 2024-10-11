@@ -53,7 +53,7 @@ CustomCheckbox.displayName = "CustomCheckbox"
 
 const Home = () => {
   const { toast } = useToast()
-  const { priceMode, americanMode, regularMode, groupMode } = useSettings();
+  const { groupMode, advancedHistory } = useSettings();
 
   const getRankColor = (rank) => {
     const baseRank = rank.charAt(0);
@@ -992,6 +992,9 @@ const Home = () => {
             </div>
           </CardContent>
         </Card>
+        {advancedHistory && (<Card className="mt-6 sm:mt-8">
+          <div>Advanced history will be implemented here</div>
+        </Card>)}
         <Card className="mt-6 sm:mt-8">
           <PlayerHistory 
             playerHistory={playerHistory}
