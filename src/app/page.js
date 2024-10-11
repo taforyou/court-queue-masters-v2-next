@@ -53,7 +53,7 @@ CustomCheckbox.displayName = "CustomCheckbox"
 
 const Home = () => {
   const { toast } = useToast()
-  const { priceMode, americanMode, regularMode } = useSettings();
+  const { priceMode, americanMode, regularMode, groupMode } = useSettings();
 
   const getRankColor = (rank) => {
     const baseRank = rank.charAt(0);
@@ -881,7 +881,7 @@ const Home = () => {
           )}
         </div>
     
-        <Buffer 
+        {groupMode && (<Buffer 
           selectedPlayers={selectedPlayers}
           setSelectedPlayers={setSelectedPlayers}
           playerRanks={playerRanks} 
@@ -890,7 +890,7 @@ const Home = () => {
           onGroupChange={handleGroupChange}
           bufferGroups={bufferGroups}
           setBufferGroups={setBufferGroups}
-        />
+        />)}
 
         <Card className="mt-6 sm:mt-8">
           <CardHeader>
