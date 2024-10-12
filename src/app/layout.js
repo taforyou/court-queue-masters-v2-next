@@ -20,13 +20,13 @@ export default function RootLayout({ children }) {
         <HotjarScript />
       </head>
       <body className={inter.className}>
-        <GoogleAnalyticScript />
         <TooltipProvider>
           <SettingsProvider>
             {children}
           </SettingsProvider>
           <Toaster />
         </TooltipProvider>
+        <GoogleAnalyticScript />
       </body>
     </html>
   )
