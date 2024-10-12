@@ -82,7 +82,7 @@ const Home = () => {
   const [shuttlecockCount, setShuttlecockCount] = useState({});
   const [playerTimestamps, setPlayerTimestamps] = useState({});
   const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [editingCourtId, setEditingCourtId] = useState(null);
+  const [editingCourts, setEditingCourts] = useState({});
   const [editCourtIdValue, setEditCourtIdValue] = useState('');
   const [currentCourtIndex, setCurrentCourtIndex] = useState(0);
   const courtsContainerRef = useRef(null);
@@ -557,15 +557,15 @@ const Home = () => {
   };  
 
   const startEditingCourtId = (courtId) => {
-    setEditingCourtId(courtId);
+    setEditingCourts(prev => ({...prev, [courtId]: true}));
     setEditCourtIdValue(courtId.toString());
   };
 
-  const saveCourtId = () => {
+  const saveCourtId = (courtId) => {
     const newId = parseInt(editCourtIdValue);
     if (!isNaN(newId) && newId > 0) {
       // Check if the new ID already exists in other courts
-      const idExists = courts.some(court => court.id === newId && court.id !== editingCourtId);
+      const idExists = courts.some(court => court.id === newId && court.id !== courtId);
       
       if (idExists) {
         toast({
@@ -575,9 +575,9 @@ const Home = () => {
         });
       } else {
         setCourts(prevCourts => prevCourts.map(court => 
-          court.id === editingCourtId ? { ...court, id: newId } : court
+          court.id === courtId ? { ...court, id: newId } : court
         ));
-        setEditingCourtId(null);
+        setEditingCourts(prev => ({...prev, [courtId]: false}));
       }
     } else {
       toast({
@@ -586,6 +586,28 @@ const Home = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const undoAllPlayers = (courtId) => {
+    setCourts(prevCourts => prevCourts.map(court => {
+      if (court.id === courtId) {
+        court.players.forEach(player => {
+          setPlayerStats(prevStats => ({
+            ...prevStats,
+            [player]: {
+              ...prevStats[player],
+              current: 0,
+              currentCourt: null
+            }
+          }));
+          setQueue(prevQueue => [player, ...prevQueue.filter(p => p !== player)]);
+        });
+        return { ...court, players: [] };
+      }
+      return court;
+    }));
+    // Close edit state immediately after undoing all players
+    setEditingCourts(prev => ({...prev, [courtId]: false}));
   };
 
   const sortQueue = useCallback((field) => {
@@ -732,7 +754,7 @@ const Home = () => {
               >
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    {editingCourtId === court.id ? (
+                    {editingCourts[court.id] ? (
                       <div className="flex items-center space-x-2">
                         <Input
                           type="number"
@@ -743,10 +765,18 @@ const Home = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={saveCourtId}
+                          onClick={() => saveCourtId(court.id)}
                           className="h-8 w-8 rounded-full"
                         >
                           <Check className="h-4 w-4 text-green-500" />
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="icon"
+                          onClick={() => undoAllPlayers(court.id)}
+                          className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600"
+                        >
+                          <Undo2 className="h-4 w-4 text-white" />
                         </Button>
                       </div>
                     ) : (
@@ -818,14 +848,16 @@ const Home = () => {
                                       <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold text-white ${getRankColor(playerRanks[p])}`}>
                                         {playerRanks[p]}
                                       </span>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 p-0"
-                                        onClick={() => undoPlayerAssignment(court.id, p)}
-                                      >
-                                        <Undo2 className="h-4 w-4 text-blue-500" />
-                                      </Button>
+                                      {editingCourts[court.id] && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 p-0"
+                                          onClick={() => undoPlayerAssignment(court.id, p)}
+                                        >
+                                          <Undo2 className="h-4 w-4 text-blue-500" />
+                                        </Button>
+                                      )}
                                     </div>
                                     <div className="flex items-center space-x-4">
                                       <span className="text-sm text-gray-500">{shuttlecockCount[p]?.toFixed(2) || '0.00'}</span>
