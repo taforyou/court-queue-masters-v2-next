@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { SettingsProvider } from '@/context/SettingsContext';
 import HotjarScript from '@/components/HotjarScript'
-import GoogleAnalyticScript from '@/components/GoogleAnalyticScript'
+// import GoogleAnalyticScript from '@/components/_GoogleAnalyticScript'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
           </SettingsProvider>
           <Toaster />
         </TooltipProvider>
-        <GoogleAnalyticScript />
+        {/* <GoogleAnalyticScript /> */}
       </body>
     </html>
   )
